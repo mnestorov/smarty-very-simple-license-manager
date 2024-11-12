@@ -150,7 +150,15 @@ function smarty_license_details_callback($post) {
     $expiration_date = get_post_meta($post->ID, '_expiration_date', true);
     $status = get_post_meta($post->ID, '_status', true);
     $usage_url = get_post_meta($post->ID, '_usage_url', true); // Retrieve the usage URL
-    $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version ?>
+    $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version 
+
+    // Retrieve additional server information
+    $web_server = get_post_meta($post->ID, '_web_server', true) ?: 'Not recorded yet';
+    $server_ip = get_post_meta($post->ID, '_server_ip', true) ?: 'Not recorded yet';
+    $php_version = get_post_meta($post->ID, '_php_version', true) ?: 'Not recorded yet';
+
+    $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: 'Not recorded yet';
+    $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: 'Not recorded yet'; ?>
 
     <!-- Two-column layout styling -->
     <div style="display: flex; gap: 20px;">
@@ -167,6 +175,9 @@ function smarty_license_details_callback($post) {
                             <button type="button" class="button generate-key-button" onclick="generateLicenseKey()"><?php echo __('Generate Key', 'smarty-very-simple-license-manager'); ?></button>
                         </div>
                     </td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
                 </tr>
                  <!-- Product -->
                 <tr>
@@ -222,16 +233,44 @@ function smarty_license_details_callback($post) {
         <!-- Right column with Usage URL -->
         <div style="flex: 1; padding: 10px; border-left: 1px solid #ddd;">
             <table class="license-table">
-            <!-- Usage URL -->
-            <tr>
-                <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
-                <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : 'No usage URL recorded yet'); ?>" readonly /></td>
-            </tr>
-            <!-- WordPress Version -->
-            <tr>
-                <td><label><?php echo __('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                <td><input type="text" name="usage_url" value="<?php echo ($wp_version ? esc_html($wp_version) : 'Not recorded yet'); ?>" readonly /></td>
-            </tr>
+                <!-- Usage URL -->
+                <tr>
+                    <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : 'Not recorded yet'); ?>" readonly /></td>
+                </tr>
+                <!-- WordPress Version -->
+                <tr>
+                    <td><label><?php echo __('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="usage_url" value="<?php echo ($wp_version ? esc_html($wp_version) : 'Not recorded yet'); ?>" readonly /></td>
+                </tr>
+                <!-- Web Server -->
+                <tr>
+                    <td><label><?php echo __('Web Server', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="web_server" value="<?php echo esc_html($web_server); ?>" readonly /></td>
+                </tr>
+                <!-- Server IP -->
+                <tr>
+                    <td><label><?php echo __('Server IP', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip); ?>" readonly /></td>
+                </tr>
+                <!-- PHP Version -->
+                <tr>
+                    <td><label><?php echo __('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
+                <!-- Plugin Name -->
+                <tr>
+                    <td><label><?php echo __('Plugin Name', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
+                </tr>
+                <!-- Plugin Version -->
+                <tr>
+                    <td><label><?php echo __('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
+                </tr>
             </table>
         </div> <!-- End right column -->
 
@@ -572,7 +611,7 @@ function smarty_license_manager_cs_key_callback() {
  * Register REST API endpoint for license status check.
  */
 function smarty_register_license_status_endpoint() {
-    register_rest_route('license-manager/v1', '/check-license/', array(
+    register_rest_route('license-manager/v1', '/check-license', array(
         'methods' => 'GET',
         'callback' => 'smarty_check_license_status',
         'permission_callback' => 'smarty_basic_auth_permission_check',
@@ -611,12 +650,17 @@ function smarty_basic_auth_permission_check() {
  * Callback for the REST API endpoint to check license status.
  *
  * @param WP_REST_Request $request The REST request object.
- * @return WP_REST_Response The REST response with license status.
+ * @return WP_REST_Response The REST response with license status, expiration date, usage URL, and WordPress version.
  */
 function smarty_check_license_status(WP_REST_Request $request) {
     $license_key = $request->get_param('license_key');
     $site_url = $request->get_param('site_url');
     $wp_version = $request->get_param('wp_version');
+    $web_server = $request->get_param('web_server');
+    $server_ip = $request->get_param('server_ip');
+    $php_version = $request->get_param('php_version');
+    $plugin_name = $request->get_param('plugin_name');
+    $plugin_version = $request->get_param('plugin_version');
 
     // Find the license by key
     $license_posts = get_posts(array(
@@ -636,21 +680,55 @@ function smarty_check_license_status(WP_REST_Request $request) {
 
     $license_id = $license_posts[0]->ID;
 
-    // Update usage URL and WP version if provided
     if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
         update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
     }
+
     if (!empty($wp_version)) {
         update_post_meta($license_id, '_wp_version', sanitize_text_field($wp_version));
     }
 
-    // Get license status and expiration date
+    if (!empty($web_server)) {
+        update_post_meta($license_id, '_web_server', sanitize_text_field($web_server));
+    }
+
+    if (!empty($server_ip)) {
+        update_post_meta($license_id, '_server_ip', sanitize_text_field($server_ip));
+    }
+
+    if (!empty($php_version)) {
+        update_post_meta($license_id, '_php_version', sanitize_text_field($php_version));
+    }
+
+    if (!empty($plugin_name)) {
+        update_post_meta($license_id, '_plugin_name', sanitize_text_field($plugin_name));
+    }
+
+    if (!empty($plugin_version)) {
+        update_post_meta($license_id, '_plugin_version', sanitize_text_field($plugin_version));
+    }
+
+    // Retrieve license status, expiration date, usage URL, WP version, Web server and Server IP
     $license_status = get_post_meta($license_id, '_status', true);
     $expiration_date = get_post_meta($license_id, '_expiration_date', true);
+    $usage_url = get_post_meta($license_id, '_usage_url', true);
+    $stored_wp_version = get_post_meta($license_id, '_wp_version', true);
+    $stored_web_server = get_post_meta($license_id, '_web_server', true);
+    $stored_server_ip = get_post_meta($license_id, '_server_ip', true);
+    $stored_php_version = get_post_meta($license_id, '_php_version', true);
+    $stored_plugin_name = get_post_meta($license_id, '_plugin_name', true);
+    $stored_plugin_version = get_post_meta($license_id, '_plugin_version', true);
 
     return new WP_REST_Response(array(
-        'status' => $license_status,
-        'expiration_date' => $expiration_date
+        'status'           => $license_status,
+        'expiration_date'  => $expiration_date,
+        'usage_url'        => $usage_url,
+        'wp_version'       => $stored_wp_version,
+        'web_server'       => $stored_web_server,
+        'server_ip'        => $stored_server_ip,
+        'php_version'      => $stored_php_version,
+        'plugin_name'      => $stored_plugin_name,
+        'plugin_version'   => $stored_plugin_version,
     ), 200);
 }
 
