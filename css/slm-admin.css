@@ -3,28 +3,34 @@
     max-width: 100%;
     border-collapse: collapse;
 }
+
 .license-table td {
     padding: 8px;
     vertical-align: top;
 }
+
 .license-table label {
     font-weight: bold;
     display: inline-block;
     text-align: right;
     width: 100%;
 }
+
 .license-table .field-wrapper {
     display: flex;
     align-items: center;
 }
+
 .license-table input,
 .license-table select {
     width: 100%;
 }
+
 .generate-key-button {
     margin-left: 10px;
     white-space: nowrap;
 }
+
 @media (max-width: 600px) {
     .license-table td {
         display: block;
@@ -34,4 +40,55 @@
         margin-top: 5px;
         margin-left: 0;
     }
+}
+
+.license-key-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.masked-key {
+    border: 1px solid #ededf0;
+    border-radius: 3px;
+    padding: 2px 4px;
+    background-color: #fefefe;
+    width: 150px;
+}
+
+.key-toggle-links a {
+    color: #2271b1;
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 5px;
+}
+
+.key-toggle-links a:hover {
+    color: #135e96;
+    text-decoration: none;
+}
+
+/* License Status Styling */
+.status-badge.active {
+    background-color: #d9f2d9; /* Light green background */
+    color: #2e7d32; /* Darker green text */
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.status-badge.inactive {
+    background-color: #f8d7da; /* Light red background */
+    color: #a94442; /* Darker red text */
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Styling for the Copy link */
+.copy-key-link {
+    margin-left: 5px;
+    cursor: pointer;
+    color: #0073aa;
+}
+.copy-key-link:hover {
+    color: #005177;
 }

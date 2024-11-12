@@ -22,14 +22,11 @@ if (!defined('WPINC')) {
  * @param string $hook The current admin page.
  */
 function smarty_enqueue_admin_assets($hook) {
-    // Load scripts and styles only on the edit screen for the license post type
-    global $post;
-    if ($hook === 'post.php' || $hook === 'post-new.php') {
-        if ($post && $post->post_type === 'license') {
-            // Enqueue CSS file
+    if ($hook === 'edit.php' || $hook === 'post.php' || $hook === 'post-new.php') {
+        global $post_type;
+        if ($post_type === 'license' || get_post_type() === 'license') {
+            // Enqueue CSS and JS files
             wp_enqueue_style('slm-admin-css', plugin_dir_url(__FILE__) . 'css/slm-admin.css');
-            
-            // Enqueue JavaScript file
             wp_enqueue_script('slm-admin-js', plugin_dir_url(__FILE__) . 'js/slm-admin.js', array(), null, true);
         }
     }
@@ -193,38 +190,74 @@ function smarty_save_license_meta($post_id, $post) {
 add_action('save_post', 'smarty_save_license_meta', 10, 2);
 
 /**
- * Add custom columns for License Key and Status in the licenses list table.
+ * Remove the "View" link from the row actions for licenses in the admin list.
+ *
+ * @param array $actions The current row actions.
+ * @param WP_Post $post The current post object.
+ * @return array Modified row actions without the "View" link.
+ */
+function smarty_remove_view_link($actions, $post) {
+    // Check if the current post type is "license"
+    if ($post->post_type === 'license') {
+        unset($actions['view']); // Remove the "View" action
+    }
+    return $actions;
+}
+add_filter('post_row_actions', 'smarty_remove_view_link', 10, 2);
+
+/**
+ * Add custom columns for License Key, Status, Expiration Date, and User Email in the licenses list table.
  *
  * @param array $columns The current list of columns.
  * @return array Modified list of columns.
  */
 function smarty_add_license_columns($columns) {
+    $columns['expiration_date'] = 'Expiration Date';
     $columns['license_key'] = 'License Key';
+    $columns['user_email'] = 'User Email';
     $columns['license_status'] = 'Status';
     return $columns;
 }
 add_filter('manage_license_posts_columns', 'smarty_add_license_columns');
 
 /**
- * Populate the custom columns for License Key and Status.
+ * Populate the custom columns for License Key, Status, Expiration Date, and User Email.
  *
  * @param string $column The name of the column.
  * @param int $post_id The ID of the current post.
  */
 function smarty_fill_license_columns($column, $post_id) {
     if ($column === 'license_key') {
-        // Display License Key
-        echo esc_html(get_post_meta($post_id, '_license_key', true));
-    } elseif ($column === 'license_status') {
-        // Display Status with color styling
-        $status = get_post_meta($post_id, '_status', true);
-        $color = 'gray';
-        
-        if ($status === 'active') $color = 'green';
-        elseif ($status === 'inactive') $color = 'darkgray';
-        elseif ($status === 'expired') $color = 'red';
+        $license_key = get_post_meta($post_id, '_license_key', true);
+        $masked_key = substr($license_key, 0, 4) . '-****-****-****';
 
-        echo '<span style="color:' . $color . ';">' . ucfirst($status) . '</span>';
+        echo '<div class="license-key-wrapper">';
+        echo '<span class="masked-key">' . esc_html($masked_key) . '</span>';
+        echo '<input type="hidden" class="full-key" value="' . esc_attr($license_key) . '" />';
+        echo '<div class="key-toggle-links">';
+        echo '<a href="#" class="row-actions show-key-link">Show</a>';
+        echo '<a href="#" class="row-actions hide-key-link" style="display:none;">Hide</a>';
+        echo '<span class="row-actions">|</span>';
+        echo '<a href="#" class="row-actions copy-key-link" onclick="copyLicenseKey(this, \'' . esc_attr($license_key) . '\')">Copy</a>';
+        echo '</div>';
+        echo '</div>';
+    } elseif ($column === 'license_status') {
+        $status = get_post_meta($post_id, '_status', true);
+        $status_text = ucfirst($status);
+        
+        if ($status === 'active') {
+            echo '<span class="status-badge active">' . $status_text . '</span>';
+        } elseif ($status === 'inactive') {
+            echo '<span class="status-badge inactive">' . $status_text . '</span>';
+        } else {
+            echo '<span>' . $status_text . '</span>';
+        }
+    } elseif ($column === 'expiration_date') {
+        $expiration_date = get_post_meta($post_id, '_expiration_date', true);
+        $formatted_date = date('Y/m/d', strtotime($expiration_date)); // Format as YYYY/MM/DD
+        echo esc_html($formatted_date);
+    } elseif ($column === 'user_email') {
+        echo esc_html(get_post_meta($post_id, '_user_email', true));
     }
 }
 add_action('manage_license_posts_custom_column', 'smarty_fill_license_columns', 10, 2);
