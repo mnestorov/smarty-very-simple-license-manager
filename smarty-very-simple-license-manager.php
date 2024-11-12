@@ -56,10 +56,41 @@ function smarty_register_license_post_type() {
         'public' => true,
         'has_archive' => true,
         'supports' => array('title'), // Only 'title' support, no editor
+        'menu_icon' => 'dashicons-admin-network',
         'show_in_rest' => true,
     ));
 }
 add_action('init', 'smarty_register_license_post_type');
+
+/**
+ * Customize the update messages for the License custom post type.
+ *
+ * @param array $messages Default update messages.
+ * @return array Modified update messages.
+ */
+function smarty_license_post_updated_messages($messages) {
+    global $post, $post_ID;
+
+    $messages['license'] = array(
+        0 => '', // Unused. Messages start from index 1.
+        1 => 'License updated.', // Updated
+        2 => 'Custom field updated.',
+        3 => 'Custom field deleted.',
+        4 => 'License updated.',
+        5 => isset($_GET['revision']) ? sprintf('License restored to revision from %s', wp_post_revision_title((int) $_GET['revision'], false)) : false,
+        6 => 'License published.',
+        7 => 'License saved.',
+        8 => 'License submitted.',
+        9 => sprintf(
+            'License scheduled for: <strong>%1$s</strong>.',
+            date_i18n('M j, Y @ G:i', strtotime($post->post_date))
+        ),
+        10 => 'License draft updated.'
+    );
+
+    return $messages;
+}
+add_filter('post_updated_messages', 'smarty_license_post_updated_messages');
 
 /**
  * Add custom meta boxes for license details in the license edit screen.
@@ -233,8 +264,8 @@ add_action('pre_get_posts', 'smarty_orderby_license_columns');
  * Schedule a daily cron job to check for expired licenses.
  */
 function smarty_schedule_cron_job() {
-    if (!wp_next_scheduled('smarty_license_cron_job')) {
-        wp_schedule_event(time(), 'daily', 'smarty_license_cron_job');
+    if (!wp_next_scheduled('smarty_license_check')) {
+        wp_schedule_event(time(), 'daily', 'smarty_license_check');
     }
 }
 add_action('wp', 'smarty_schedule_cron_job');
@@ -251,7 +282,7 @@ function smarty_check_expired_licenses() {
         }
     }
 }
-add_action('smarty_license_cron_job', 'smarty_check_expired_licenses');
+add_action('smarty_license_check', 'smarty_check_expired_licenses');
 
 /**
  * Create settings page for API key management.
@@ -267,7 +298,7 @@ add_action('admin_menu', 'smarty_license_manager_settings_page');
 function smarty_license_manager_settings_page_callback() {
     ?>
     <div class="wrap">
-        <h1>License Manager Settings</h1>
+        <h1><?php __('License Manager Settings', 'smarty-very-simple-license-manager'); ?></h1>
         <form method="post" action="options.php">
             <?php
             settings_fields('license_manager_settings');
