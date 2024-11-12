@@ -528,12 +528,25 @@ function smarty_license_manager_register_settings() {
     register_setting('license_manager_settings', 'license_manager_ck_key');
     register_setting('license_manager_settings', 'license_manager_cs_key');
 
-    add_settings_section('license_manager_section', 'License Manager | Settings', null, 'license_manager_settings');
+    // Register the section with a description callback
+    add_settings_section(
+        'license_manager_section',
+        'License Manager | Settings',
+        'smarty_license_manager_section_description',
+        'license_manager_settings'
+    );
 
     add_settings_field('license_manager_ck_key', 'CK Key', 'smarty_license_manager_ck_key_callback', 'license_manager_settings', 'license_manager_section');
     add_settings_field('license_manager_cs_key', 'CS Key', 'smarty_license_manager_cs_key_callback', 'license_manager_settings', 'license_manager_section');
 }
 add_action('admin_init', 'smarty_license_manager_register_settings');
+
+/**
+ * Description for the License Manager section.
+ */
+function smarty_license_manager_section_description() {
+    echo '<p>The CK and CS keys are used to authenticate API requests for the License Manager. These keys should be generated once and not changed thereafter. Altering them could disrupt existing API integrations that rely on these keys for secure access.</p>';
+}
 
 /**
  * Callback to display and regenerate the CK Key field.
@@ -562,28 +575,50 @@ function smarty_register_license_status_endpoint() {
     register_rest_route('license-manager/v1', '/check-license/', array(
         'methods' => 'GET',
         'callback' => 'smarty_check_license_status',
-        'permission_callback' => '__return_true', // We'll handle permission manually
+        'permission_callback' => 'smarty_basic_auth_permission_check',
     ));
 }
 add_action('rest_api_init', 'smarty_register_license_status_endpoint');
 
 /**
- * Callback for the REST API endpoint to check license status and log usage URL.
+ * Permission callback for Basic Auth.
+ *
+ * @return bool True if authentication is successful, false otherwise.
+ */
+function smarty_basic_auth_permission_check() {
+    $headers = getallheaders();
+    if (isset($headers['Authorization'])) {
+        $auth_header = $headers['Authorization'];
+        if (strpos($auth_header, 'Basic ') === 0) {
+            $encoded_credentials = substr($auth_header, 6);
+            $decoded_credentials = base64_decode($encoded_credentials);
+            list($provided_ck_key, $provided_cs_key) = explode(':', $decoded_credentials, 2);
+
+            // Retrieve the stored keys
+            $stored_ck_key = get_option('license_manager_ck_key');
+            $stored_cs_key = get_option('license_manager_cs_key');
+
+            // Validate credentials
+            if ($provided_ck_key === $stored_ck_key && $provided_cs_key === $stored_cs_key) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Callback for the REST API endpoint to check license status.
  *
  * @param WP_REST_Request $request The REST request object.
  * @return WP_REST_Response The REST response with license status.
  */
 function smarty_check_license_status(WP_REST_Request $request) {
-    $provided_key = $request->get_param('api_key');
     $license_key = $request->get_param('license_key');
-    $site_url = $request->get_param('site_url'); // URL of the site using the license
-    $wp_version = $request->get_param('wp_version'); // WordPress version from client site
-    $stored_api_key = get_option('license_manager_api_key');
+    $site_url = $request->get_param('site_url');
+    $wp_version = $request->get_param('wp_version');
 
-    if (empty($provided_key) || $provided_key !== $stored_api_key) {
-        return new WP_REST_Response(array('error' => 'Invalid API key'), 403);
-    }
-
+    // Find the license by key
     $license_posts = get_posts(array(
         'post_type' => 'license',
         'meta_query' => array(
@@ -601,7 +636,7 @@ function smarty_check_license_status(WP_REST_Request $request) {
 
     $license_id = $license_posts[0]->ID;
 
-    // Save the site URL and WordPress version if provided and valid
+    // Update usage URL and WP version if provided
     if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
         update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
     }
@@ -609,12 +644,9 @@ function smarty_check_license_status(WP_REST_Request $request) {
         update_post_meta($license_id, '_wp_version', sanitize_text_field($wp_version));
     }
 
+    // Get license status and expiration date
     $license_status = get_post_meta($license_id, '_status', true);
     $expiration_date = get_post_meta($license_id, '_expiration_date', true);
-
-    if ($license_status === 'expired') {
-        return new WP_REST_Response(array('status' => 'expired', 'expiration_date' => $expiration_date), 200);
-    }
 
     return new WP_REST_Response(array(
         'status' => $license_status,
@@ -671,4 +703,3 @@ function smarty_generate_cs_key() {
     wp_send_json_success($cs_key);
 }
 add_action('wp_ajax_generate_cs_key', 'smarty_generate_cs_key');
-
