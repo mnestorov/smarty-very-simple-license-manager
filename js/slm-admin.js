@@ -25,7 +25,7 @@ jQuery(document).ready(function($) {
     $('.hide-key-link').on('click', function(event) {
         event.preventDefault();
         var $wrapper = $(this).closest('.license-key-wrapper');
-        var maskedKey = $wrapper.find('.full-key').val().substring(0, 4) + '-****-****-****';
+        var maskedKey = $wrapper.find('.full-key').val().substring(0, 4) + '-XXXX-XXXX-XXXX';
         $wrapper.find('.masked-key').text(maskedKey);
         $(this).hide();
         $wrapper.find('.show-key-link').show();

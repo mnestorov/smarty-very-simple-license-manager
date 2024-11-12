@@ -129,10 +129,13 @@ function smarty_license_meta_box_title() {
     $status = get_post_meta($post->ID, '_status', true) ?: 'new';
 
     // Determine the color for the dot based on status
-    $dot_color = $status === 'active' ? 'green' : ($status === 'inactive' ? 'red' : 'gray');
+    $dot_color = $status === 'active' ? '#28a745' : ($status === 'inactive' ? '#dc3545' : ($status === 'expired' ? '#427eab' : 'gray'));
 
-    // Return the title with a colored dot
-    return 'License Details <span class="status-circle" style="background-color:' . $dot_color . ';"></span>';
+    // Set class based on status to handle the pulse effect only for 'active'
+    $status_class = 'status-circle-container--' . $status;
+
+    // Return the title with a container for the pulsing effect
+    return 'License Details <span class="status-circle-container ' . esc_attr($status_class) . '"><span class="status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
 }
 
 /**
@@ -150,15 +153,16 @@ function smarty_license_details_callback($post) {
     $expiration_date = get_post_meta($post->ID, '_expiration_date', true);
     $status = get_post_meta($post->ID, '_status', true);
     $usage_url = get_post_meta($post->ID, '_usage_url', true); // Retrieve the usage URL
-    $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version 
+    $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
+
+    // Retrieve plugin information
+    $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: 'Not recorded yet';
+    $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: 'Not recorded yet';
 
     // Retrieve additional server information
     $web_server = get_post_meta($post->ID, '_web_server', true) ?: 'Not recorded yet';
     $server_ip = get_post_meta($post->ID, '_server_ip', true) ?: 'Not recorded yet';
-    $php_version = get_post_meta($post->ID, '_php_version', true) ?: 'Not recorded yet';
-
-    $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: 'Not recorded yet';
-    $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: 'Not recorded yet'; ?>
+    $php_version = get_post_meta($post->ID, '_php_version', true) ?: 'Not recorded yet'; ?>
 
     <!-- Two-column layout styling -->
     <div style="display: flex; gap: 20px;">
@@ -174,6 +178,18 @@ function smarty_license_details_callback($post) {
                             <input type="text" name="license_key" id="license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
                             <button type="button" class="button generate-key-button" onclick="generateLicenseKey()"><?php echo __('Generate Key', 'smarty-very-simple-license-manager'); ?></button>
                         </div>
+                    </td>
+                </tr>
+                <!-- Status -->
+                <tr>
+                    <td><label><?php echo __('Status', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td>
+                        <select name="status">
+                            <?php foreach (array('active', 'inactive', 'expired') as $option) : ?>
+                                <?php $selected = $status === $option ? 'selected' : ''; ?>
+                                <option value="<?php echo $option; ?>" <?php echo $selected; ?>><?php echo ucfirst($option); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -215,24 +231,25 @@ function smarty_license_details_callback($post) {
                     <td><label><?php echo __('Expiration Date', 'smarty-very-simple-license-manager'); ?></label></td>
                     <td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
                 </tr>
-                <!-- Status -->
-                <tr>
-                    <td><label><?php echo __('Status', 'smarty-very-simple-license-manager'); ?></label></td>
-                    <td>
-                        <select name="status">
-                            <?php foreach (array('active', 'inactive', 'expired') as $option) : ?>
-                                <?php $selected = $status === $option ? 'selected' : ''; ?>
-                                <option value="<?php echo $option; ?>" <?php echo $selected; ?>><?php echo ucfirst($option); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
             </table>
         </div> <!-- End left column -->
 
         <!-- Right column with Usage URL -->
         <div style="flex: 1; padding: 10px; border-left: 1px solid #ddd;">
             <table class="license-table">
+                <!-- Plugin Name -->
+                <tr>
+                    <td><label><?php echo __('Plugin Name', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
+                </tr>
+                <!-- Plugin Version -->
+                <tr>
+                    <td><label><?php echo __('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                    <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
                 <!-- Usage URL -->
                 <tr>
                     <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
@@ -257,19 +274,6 @@ function smarty_license_details_callback($post) {
                 <tr>
                     <td><label><?php echo __('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
                     <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
-                </tr>
-                <tr>
-                    <td>&nbsp;</td>
-                </tr>
-                <!-- Plugin Name -->
-                <tr>
-                    <td><label><?php echo __('Plugin Name', 'smarty-very-simple-license-manager'); ?></label></td>
-                    <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
-                </tr>
-                <!-- Plugin Version -->
-                <tr>
-                    <td><label><?php echo __('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                    <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
                 </tr>
             </table>
         </div> <!-- End right column -->
@@ -426,7 +430,7 @@ add_filter('manage_license_posts_columns', 'smarty_add_license_columns');
 function smarty_fill_license_columns($column, $post_id) {
     if ($column === 'license_key') {
         $license_key = get_post_meta($post_id, '_license_key', true);
-        $masked_key = substr($license_key, 0, 4) . '-****-****-****';
+        $masked_key = substr($license_key, 0, 4) . '-XXXX-XXXX-XXXX';
 
         echo '<div class="license-key-wrapper">';
         
@@ -451,6 +455,8 @@ function smarty_fill_license_columns($column, $post_id) {
             echo '<span class="status-badge active">' . $status_text . '</span>';
         } elseif ($status === 'inactive') {
             echo '<span class="status-badge inactive">' . $status_text . '</span>';
+        } elseif ($status === 'expired') {
+            echo '<span class="status-badge expired">' . $status_text . '</span>';
         } else {
             echo '<span>' . $status_text . '</span>';
         }
@@ -471,7 +477,7 @@ function smarty_fill_license_columns($column, $post_id) {
         $product_terms = get_the_terms($post_id, 'product');
         if (!empty($product_terms) && !is_wp_error($product_terms)) {
             $product_names = wp_list_pluck($product_terms, 'name');
-            echo esc_html(implode(', ', $product_names));
+            echo '<b>' . esc_html(implode(', ', $product_names)) . '</b>';
         } else {
             echo '—'; // Display a dash if no product is assigned
         }
@@ -538,7 +544,7 @@ add_action('smarty_license_check', 'smarty_check_expired_licenses');
  * Create settings page for API key management.
  */
 function smarty_license_manager_settings_page() {
-    add_options_page('License Manager Settings', 'License Manager', 'manage_options', 'license_manager', 'smarty_license_manager_settings_page_callback');
+    add_options_page('License Manager | Settings', 'License Manager', 'manage_options', 'license_manager', 'smarty_license_manager_settings_page_callback');
 }
 add_action('admin_menu', 'smarty_license_manager_settings_page');
 
@@ -548,7 +554,7 @@ add_action('admin_menu', 'smarty_license_manager_settings_page');
 function smarty_license_manager_settings_page_callback() {
     ?>
     <div class="wrap">
-        <h1><?php __('License Manager Settings', 'smarty-very-simple-license-manager'); ?></h1>
+        <h1><?php __('License Manager | Settings', 'smarty-very-simple-license-manager'); ?></h1>
         <form method="post" action="options.php">
             <?php
             settings_fields('license_manager_settings');
@@ -575,8 +581,8 @@ function smarty_license_manager_register_settings() {
         'license_manager_settings'
     );
 
-    add_settings_field('license_manager_ck_key', 'CK Key', 'smarty_license_manager_ck_key_callback', 'license_manager_settings', 'license_manager_section');
-    add_settings_field('license_manager_cs_key', 'CS Key', 'smarty_license_manager_cs_key_callback', 'license_manager_settings', 'license_manager_section');
+    add_settings_field('license_manager_ck_key', 'Consumer Key', 'smarty_license_manager_ck_key_callback', 'license_manager_settings', 'license_manager_section');
+    add_settings_field('license_manager_cs_key', 'Consumer Secret', 'smarty_license_manager_cs_key_callback', 'license_manager_settings', 'license_manager_section');
 }
 add_action('admin_init', 'smarty_license_manager_register_settings');
 
@@ -584,7 +590,7 @@ add_action('admin_init', 'smarty_license_manager_register_settings');
  * Description for the License Manager section.
  */
 function smarty_license_manager_section_description() {
-    echo '<p>The CK and CS keys are used to authenticate API requests for the License Manager. These keys should be generated once and not changed thereafter. Altering them could disrupt existing API integrations that rely on these keys for secure access.</p>';
+    echo '<p>The Consumer Key and Consumer Secret keys are used to authenticate API requests for the License Manager.</p><p>These keys should be generated once and not changed thereafter.</p><p>Altering them could disrupt existing API integrations that rely on these keys for secure access.</p>';
 }
 
 /**
@@ -593,8 +599,8 @@ function smarty_license_manager_section_description() {
 function smarty_license_manager_ck_key_callback() {
     $ck_key = get_option('license_manager_ck_key');
     echo '<input type="text" id="ck_key" name="license_manager_ck_key" value="' . esc_attr($ck_key) . '" readonly />';
-    echo '<button type="button" id="generate_ck_key" class="button">Generate CK Key</button>';
-    echo '<p class="description">This CK Key is used for API authentication. Click "Generate CK Key" to create a new one.</p>';
+    echo '<button type="button" id="generate_ck_key" class="button">Generate</button>';
+    echo '<p class="description">This Consumer Key is used for API authentication. Click "Generate" to create a new one.</p>';
 }
 
 /**
@@ -603,8 +609,8 @@ function smarty_license_manager_ck_key_callback() {
 function smarty_license_manager_cs_key_callback() {
     $cs_key = get_option('license_manager_cs_key');
     echo '<input type="text" id="cs_key" name="license_manager_cs_key" value="' . esc_attr($cs_key) . '" readonly />';
-    echo '<button type="button" id="generate_cs_key" class="button">Generate CS Key</button>';
-    echo '<p class="description">This CS Key is used as a secret key for API requests. Click "Generate CS Key" to create a new one.</p>';
+    echo '<button type="button" id="generate_cs_key" class="button">Generate</button>';
+    echo '<p class="description">This Consumer Secret is used as a secret key for API requests. Click "Generate" to create a new one.</p>';
 }
 
 /**
