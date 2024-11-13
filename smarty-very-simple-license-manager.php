@@ -26,7 +26,7 @@ if (!function_exists('smarty_vslm_enqueue_admin_scripts')) {
         global $post_type;
 
         // Check if we're on the License Manager settings page
-        if ($hook === 'settings_page_vslm_settings') {
+        if ($hook === 'settings_page_smarty-vslm-settings') {
             // Enqueue AJAX script for the settings page
             wp_enqueue_script('vslm-ajax', plugin_dir_url(__FILE__) . 'js/smarty-vslm-ajax.js', array('jquery'), null, true);
 
@@ -754,7 +754,7 @@ if (!function_exists('smarty_license_manager_settings_page')) {
             'License Manager | Settings', 
             'License Manager', 
             'manage_options', 
-            'smarty_license_manager_settings', 
+            'smarty-vslm-settings', 
             'smarty_license_manager_settings_page_html'
         );
     }
