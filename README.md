@@ -32,7 +32,9 @@ After activating the plugin, use the License Manager settings in the WordPress a
 
 ## API Usage
 
-The plugin provides an API endpoint to validate licenses. To access it, you must authenticate using your Consumer Key and Consumer Secret. The endpoint format is:
+The plugin provides an API endpoint to validate licenses. To access it, you must authenticate using your Consumer Key and Consumer Secret. 
+
+**Endpoint Format**
 
 ```bash
 GET https://yourwebsite.com/wp-json/smarty-vslm/v1/check-license
