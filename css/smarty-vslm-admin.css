@@ -5,6 +5,57 @@
     margin-left: 8px;
 }
 
+/* Custom checkbox styling */
+.custom-checkbox {
+    display: inline-block;
+    position: relative;
+    width: 24px;
+    height: 24px;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    cursor: pointer;
+}
+
+.custom-checkbox .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    background-color: #e6e6e6;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.custom-checkbox input[type="checkbox"]:checked ~ .checkmark {
+    background-color: #28a745; /* Change color when checked */
+}
+
+.custom-checkbox .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-checkbox input[type="checkbox"]:checked ~ .checkmark::after {
+    display: block;
+}
+
+.custom-checkbox .checkmark::after {
+    left: 8px;
+    top: 4px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
 .license-table {
     width: 100%;
     max-width: 100%;
@@ -33,6 +84,18 @@
 .license-table input,
 .license-table select {
     width: 100%;
+}
+
+.license-table input[type="checkbox"] {
+    width: auto;
+}
+
+.license-table .usage-urls br:first-of-type {
+    margin-bottom: 10px;
+ }
+
+.license-table .usage-urls br:last-of-type {
+   display: none;
 }
 
 .generate-key-button {
@@ -216,7 +279,6 @@
         opacity: 0;
     }
 }
-
 
 /* Styling for the Copy link */
 .copy-key-link {

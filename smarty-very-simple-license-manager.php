@@ -164,6 +164,8 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $expiration_date = get_post_meta($post->ID, '_expiration_date', true);
         $status = get_post_meta($post->ID, '_status', true);
         $usage_url = get_post_meta($post->ID, '_usage_url', true); // Retrieve the usage URL
+        $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: array();
+        $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
         $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
 
         // Retrieve plugin information
@@ -201,6 +203,15 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                                     <option value="<?php echo $option; ?>" <?php echo $selected; ?>><?php echo ucfirst($option); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label><?php echo __('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="multi_domain" value="1" <?php checked($multi_domain, '1'); ?> />
+                                <span class="checkmark"></span>
+                            </label>
                         </td>
                     </tr>
                     <tr>
@@ -261,15 +272,27 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     <tr>
                         <td>&nbsp;</td>
                     </tr>
-                    <!-- Usage URL -->
-                    <tr>
-                        <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : 'Not recorded yet'); ?>" readonly /></td>
-                    </tr>
+                    <!-- Usage URLs (only displayed if multi-domain is enabled) -->
+                    <?php if ($multi_domain) : ?>
+                        <tr>
+                            <td><label><?php echo __('Usage URLs', 'smarty-very-simple-license-manager'); ?></label></td>
+                            <td class="usage-urls">
+                                <?php foreach ($usage_urls as $url): ?>
+                                    <input type="text" value="<?php echo esc_url($url); ?>" readonly /><br/>
+                                <?php endforeach; ?>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <!-- Usage URL -->
+                        <tr>
+                            <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
+                            <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : 'Not recorded yet'); ?>" readonly /></td>
+                        </tr>
+                    <?php endif; ?>
                     <!-- WordPress Version -->
                     <tr>
                         <td><label><?php echo __('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="usage_url" value="<?php echo ($wp_version ? esc_html($wp_version) : 'Not recorded yet'); ?>" readonly /></td>
+                        <td><input type="text" name="wp_version" value="<?php echo ($wp_version ? esc_html($wp_version) : 'Not recorded yet'); ?>" readonly /></td>
                     </tr>
                     <!-- Web Server -->
                     <tr>
@@ -309,6 +332,25 @@ if (!function_exists('smarty_vslm_save_license_meta')) {
             // Verify nonce for security
             if (!isset($_POST['smarty_vslm_license_nonce']) || !wp_verify_nonce($_POST['smarty_vslm_license_nonce'], 'smarty_vslm_save_license_meta')) {
                 return $post_id;
+            }
+
+            // Save multi-domain setting
+            $multi_domain = isset($_POST['multi_domain']) ? '1' : '0';
+            update_post_meta($post_id, '_multi_domain', $multi_domain);
+
+            if ($multi_domain !== '1') {
+                // Single-domain usage
+                if (isset($_POST['usage_url'])) {
+                    $usage_url = esc_url_raw($_POST['usage_url']);
+                    update_post_meta($post_id, '_usage_url', $usage_url);
+                }
+                // Delete the multi-domain usage URLs
+                delete_post_meta($post_id, '_usage_urls');
+            } else {
+                // Multi-domain usage
+                // Delete the single usage URL meta
+                delete_post_meta($post_id, '_usage_url');
+                // The _usage_urls meta will be managed via the REST API
             }
 
             // Auto-generate license key if none exists
@@ -385,6 +427,28 @@ if (!function_exists('smarty_vslm_register_product_taxonomy')) {
     add_action('init', 'smarty_vslm_register_product_taxonomy');
 }
 
+if (!function_exists('smarty_vslm_remove_admin_bar_view_posts')) {
+    /**
+     * Remove the "View Posts" link from the admin bar for the License post type.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+     */
+    function smarty_vslm_remove_admin_bar_view_posts($wp_admin_bar) {
+        // Check if we're in the License custom post type or editing it
+        global $post_type, $post;
+
+        // Only proceed if we're in the admin area and dealing with the "vslm-licenses" post type
+        if (is_admin() && ($post_type === 'vslm-licenses' || (isset($post) && $post->post_type === 'vslm-licenses'))) {
+            // Remove any "View Posts" or similar links in the admin bar related to this post type
+            $wp_admin_bar->remove_node('edit'); // Standard "Edit" node ID
+            $wp_admin_bar->remove_node('view'); // Commonly used for "View" link in admin bar
+            $wp_admin_bar->remove_node('archive'); // Possible ID for "Archive" links
+            $wp_admin_bar->remove_menu('view'); // Extra attempt in case `remove_node` does not cover all cases
+        }
+    }
+    add_action('admin_bar_menu', 'smarty_vslm_remove_admin_bar_view_posts', 999);
+}
+
 if (!function_exists('smarty_vslm_remove_view_link')) {
     /**
      * Remove the "View" link from the row actions for licenses in the admin list.
@@ -437,6 +501,7 @@ if (!function_exists('smarty_vslm_add_license_columns')) {
             'expiration_date' => 'Expiration Date',
             'client_name'     => 'Client Name',
             'client_email'    => 'Client Email',
+            'usage_urls'      => 'Usage URL(s)',
             'license_status'  => 'Status',
         );
 
@@ -508,6 +573,21 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             echo esc_html(get_post_meta($post_id, '_client_name', true));
         } elseif ($column === 'client_email') {
             echo esc_html(get_post_meta($post_id, '_client_email', true));
+        } elseif ($column === 'usage_urls') {
+            $multi_domain = get_post_meta($post_id, '_multi_domain', true);
+            if ($multi_domain === '1') {
+                $usage_urls = get_post_meta($post_id, '_usage_urls', true) ?: array();
+                if (!empty($usage_urls)) {
+                    foreach ($usage_urls as $url) {
+                        echo '<div>' . esc_url($url) . '</div>';
+                    }
+                } else {
+                    echo '—';
+                }
+            } else {
+                $usage_url = get_post_meta($post_id, '_usage_url', true);
+                echo $usage_url ? esc_url($usage_url) : '—';
+            }
         } elseif ($column === 'product') {
             // Display the product name(s)
             $product_terms = get_the_terms($post_id, 'product');
@@ -779,9 +859,31 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         }
 
         $license_id = $license_posts[0]->ID;
+        $multi_domain = get_post_meta($license_id, '_multi_domain', true);
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
-            update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
+            if ($multi_domain === '1') {
+                // Multi-domain usage
+                $usage_urls = get_post_meta($license_id, '_usage_urls', true) ?: array();
+                if (!in_array($site_url, $usage_urls, true)) {
+                    // Add the new site URL
+                    $usage_urls[] = esc_url_raw($site_url);
+                    update_post_meta($license_id, '_usage_urls', $usage_urls);
+                }
+            } else {
+                // Single-domain usage
+                $existing_usage_url = get_post_meta($license_id, '_usage_url', true);
+                if (empty($existing_usage_url) || $existing_usage_url === esc_url_raw($site_url)) {
+                    // Update the usage URL
+                    update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
+                } else {
+                    // License is already activated on a different domain
+                    return new WP_REST_Response(array(
+                        'status' => 'error',
+                        'message' => 'License already activated on another domain.'
+                    ), 403);
+                }
+            }
         }
 
         if (!empty($wp_version)) {
@@ -811,7 +913,6 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         // Retrieve license status, expiration date, usage URL, WP version, Web server and Server IP
         $license_status = get_post_meta($license_id, '_status', true);
         $expiration_date = get_post_meta($license_id, '_expiration_date', true);
-        $usage_url = get_post_meta($license_id, '_usage_url', true);
         $stored_wp_version = get_post_meta($license_id, '_wp_version', true);
         $stored_web_server = get_post_meta($license_id, '_web_server', true);
         $stored_server_ip = get_post_meta($license_id, '_server_ip', true);
@@ -819,17 +920,25 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         $stored_plugin_name = get_post_meta($license_id, '_plugin_name', true);
         $stored_plugin_version = get_post_meta($license_id, '_plugin_version', true);
 
-        return new WP_REST_Response(array(
+        $response_data = array(
             'status'           => $license_status,
             'expiration_date'  => $expiration_date,
-            'usage_url'        => $usage_url,
+            'multi_domain'     => $multi_domain === '1',
             'wp_version'       => $stored_wp_version,
             'web_server'       => $stored_web_server,
             'server_ip'        => $stored_server_ip,
             'php_version'      => $stored_php_version,
             'plugin_name'      => $stored_plugin_name,
             'plugin_version'   => $stored_plugin_version,
-        ), 200);
+        );
+
+        if ($multi_domain === '1') {
+            $response_data['usage_urls'] = get_post_meta($license_id, '_usage_urls', true) ?: array();
+        } else {
+            $response_data['usage_url'] = get_post_meta($license_id, '_usage_url', true);
+        }
+
+        return new WP_REST_Response($response_data, 200);
     }
 }
 
