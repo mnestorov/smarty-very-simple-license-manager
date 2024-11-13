@@ -4,7 +4,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault(); // Prevent the default form action
 
         $.ajax({
-            url: smarty_ajax.ajax_url,
+            url: smarty_vslm_ajax.ajax_url,
             method: 'POST',
             data: {
                 action: 'generate_ck_key'
@@ -22,7 +22,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault(); // Prevent the default form action
 
         $.ajax({
-            url: smarty_ajax.ajax_url,
+            url: smarty_vslm_ajax.ajax_url,
             method: 'POST',
             data: {
                 action: 'generate_cs_key'

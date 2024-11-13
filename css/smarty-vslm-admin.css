@@ -62,7 +62,7 @@
     border-radius: 3px;
     padding: 2px 4px;
     background-color: #fefefe;
-    width: 150px;
+    width: 160px;
 }
 
 .key-toggle-links a {
@@ -78,7 +78,6 @@
 }
 
 /* License Status Styling */
-
 .status-badge.active {
     background-color: #d9f2d9; /* Light green background */
     color: #28a745; /* Darker green text */
@@ -128,8 +127,8 @@
 .status-circle-container--active::before {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 0;
+    top: 0;
+    left: 10px;
     width: 80%;
     height: 80%;
     border-radius: 50%;
@@ -145,8 +144,8 @@
 .status-circle-container--inactive::before {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 0;
+    top: 0;
+    left: 10px;
     width: 80%;
     height: 80%;
     border-radius: 50%;
@@ -162,8 +161,8 @@
 .status-circle-container--expired::before {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 0;
+    top: 0;
+    left: 10px;
     width: 80%;
     height: 80%;
     border-radius: 50%;
@@ -225,6 +224,7 @@
     cursor: pointer;
     color: #0073aa;
 }
+
 .copy-key-link:hover {
     color: #005177;
 }
