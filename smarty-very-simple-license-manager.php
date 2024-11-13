@@ -48,6 +48,86 @@ if (!function_exists('smarty_vslm_enqueue_admin_scripts')) {
     add_action('admin_enqueue_scripts', 'smarty_vslm_enqueue_admin_scripts');
 }
 
+if (!function_exists('smarty_vslm_add_dashboard_widget')) {
+    /**
+     * Register the custom dashboard widget.
+     */
+    function smarty_vslm_add_dashboard_widget() {
+        wp_add_dashboard_widget(
+            'smarty_vslm_dashboard_widget',      // Widget ID
+            'License Manager Overview',          // Widget Title
+            'smarty_vslm_dashboard_widget_render' // Callback function to display content
+        );
+    }
+    add_action('wp_dashboard_setup', 'smarty_vslm_add_dashboard_widget');
+}
+
+if (!function_exists('smarty_vslm_dashboard_widget_render')) {
+    /**
+     * Render the content of the custom dashboard widget with a centered icon and link.
+     */
+    function smarty_vslm_dashboard_widget_render() {
+        // Query for licenses and count statuses
+        $total_count = wp_count_posts('vslm-licenses')->publish; // Get total published licenses
+        $active_count = smarty_vslm_get_license_count_by_status('active');
+        $inactive_count = smarty_vslm_get_license_count_by_status('inactive');
+        $expired_count = smarty_vslm_get_license_count_by_status('expired');
+
+        // Begin widget content
+        echo '<div style="padding: 5px;">';
+
+        // Centered icon and link for total licenses
+        echo '<h3 style="margin: 0; display: flex; align-items: center; gap: 5px;">';
+        echo '<a href="edit.php?post_type=vslm-licenses" style="font-size: 1.2em; color: #135e96; text-decoration: none;">' . $total_count . ' Licenses</a>';
+        echo '</h3>';
+
+        // Table with detailed license counts
+        echo '<table class="license-summary-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        echo '<thead>';
+        echo '<tr style="background-color: #f5f5f5; border-bottom: 1px solid #ddd;">';
+        echo '<th style="border-top: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>';
+        echo '<th style="border-top: 1px solid #ddd; padding: 8px; text-align: center;">Count</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
+        echo '<tr>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; color: #28a745; font-weight: bold;">Active Licenses</td>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">' . $active_count . '</td>';
+        echo '</tr>';
+        echo '<tr>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; color: #dc3545; font-weight: bold;">Inactive Licenses</td>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">' . $inactive_count . '</td>';
+        echo '</tr>';
+        echo '<tr>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; color: #427eab; font-weight: bold;">Expired Licenses</td>';
+        echo '<td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">' . $expired_count . '</td>';
+        echo '</tr>';
+        echo '</tbody>';
+        echo '</table>';
+
+        echo '</div>';
+    }
+}
+
+if (!function_exists('smarty_vslm_get_license_count_by_status')) {
+    /**
+     * Helper function to get the count of licenses by status.
+     *
+     * @param string $status The license status to count.
+     * @return int The count of licenses with the given status.
+     */
+    function smarty_vslm_get_license_count_by_status($status) {
+        $query = new WP_Query(array(
+            'post_type'      => 'vslm-licenses',
+            'meta_key'       => '_status',
+            'meta_value'     => $status,
+            'posts_per_page' => -1,
+            'fields'         => 'ids', // Only retrieve IDs for efficiency
+        ));
+        return $query->found_posts;
+    }
+}
+
 if (!function_exists('smarty_vslm_register_license_post_type')) {
     /**
      * Register the custom post type for managing licenses.
