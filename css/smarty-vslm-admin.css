@@ -228,3 +228,14 @@
 .copy-key-link:hover {
     color: #005177;
 }
+
+/* Helpers */
+.active {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.inactive {
+    color: #dc3545;
+    font-weight: bold;
+}

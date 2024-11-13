@@ -214,7 +214,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                             wp_dropdown_categories(array(
                                 'taxonomy' => 'product',
                                 'name' => 'product',
-                                'show_option_none' => 'Select a Product',
+                                'show_option_none' => '-- Select a Product --',
                                 'selected' => $product_terms ? $product_terms[0]->term_id : '',
                                 'required' => true,
                                 'hide_empty' => false,
@@ -491,8 +491,19 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             echo esc_html($formatted_purchase_date);
         } elseif ($column === 'expiration_date') {
             $expiration_date = get_post_meta($post_id, '_expiration_date', true);
-            $formatted_expiration_date = date('Y/m/d', strtotime($expiration_date)); // Format as YYYY/MM/DD
+            $formatted_expiration_date = date('Y/m/d', strtotime($expiration_date));
             echo esc_html($formatted_expiration_date);
+            
+            // Calculate days left if the expiration date is valid
+            $current_date = new DateTime();
+            $expiration = new DateTime($expiration_date);
+            $interval = $current_date->diff($expiration);
+            
+            if ($interval->invert === 0) { // Not expired yet
+                echo '<small class="active" style="display: block;">' . $interval->days . ' days left</small>';
+            } else {
+                echo '<small class="inactive" style="display: block;">0 days left</small>';
+            }
         } elseif ($column === 'client_name') {
             echo esc_html(get_post_meta($post_id, '_client_name', true));
         } elseif ($column === 'client_email') {
