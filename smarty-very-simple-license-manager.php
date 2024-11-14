@@ -432,7 +432,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     </tr>
                     <!-- OS -->
                     <tr>
-                        <td><label><?php esc_html(_e('OS', 'smarty-very-simple-license-manager')); ?></label></td>
+                        <td><label><?php esc_html(_e('Operating System', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="os" value="<?php echo esc_html($os); ?>" readonly /></td>
                     </tr>
                 </table>
