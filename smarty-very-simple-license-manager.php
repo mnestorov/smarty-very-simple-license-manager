@@ -404,6 +404,21 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                         <td><label><?php echo __('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
                         <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
                     </tr>
+                    <!--  User IP  -->
+                    <tr>
+                        <td><label><?php echo __('User IP', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><input type="text" name="user_ip" value="<?php echo esc_attr(get_post_meta($post->ID, '_user_ip', true)); ?>" readonly /></td>
+                    </tr>
+                    <!--  Browser Type  -->
+                    <tr>
+                        <td><label><?php echo __('Browser', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><input type="text" name="browser" value="<?php echo esc_attr(get_post_meta($post->ID, '_browser', true)); ?>" readonly /></td>
+                    </tr>
+                    <!-- Device Type -->
+                    <tr>
+                        <td><label><?php echo __('Device Type', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><input type="text" name="device_type" value="<?php echo esc_attr(get_post_meta($post->ID, '_device_type', true)); ?>" readonly /></td>
+                    </tr>
                 </table>
             </div> <!-- End right column -->
 
@@ -964,6 +979,9 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         $php_version = $request->get_param('php_version');
         $plugin_name = $request->get_param('plugin_name');
         $plugin_version = $request->get_param('plugin_version');
+        $user_ip = $request->get_param('user_ip');
+        $browser = $request->get_param('browser');
+        $device_type = $request->get_param('device_type');
 
         // Find the license by key
         $license_posts = get_posts(array(
@@ -1013,6 +1031,14 @@ if (!function_exists('smarty_vslm_check_license_status')) {
             update_post_meta($license_id, '_wp_version', sanitize_text_field($wp_version));
         }
 
+        if (!empty($plugin_name)) {
+            update_post_meta($license_id, '_plugin_name', sanitize_text_field($plugin_name));
+        }
+
+        if (!empty($plugin_version)) {
+            update_post_meta($license_id, '_plugin_version', sanitize_text_field($plugin_version));
+        }
+
         if (!empty($web_server)) {
             update_post_meta($license_id, '_web_server', sanitize_text_field($web_server));
         }
@@ -1025,12 +1051,16 @@ if (!function_exists('smarty_vslm_check_license_status')) {
             update_post_meta($license_id, '_php_version', sanitize_text_field($php_version));
         }
 
-        if (!empty($plugin_name)) {
-            update_post_meta($license_id, '_plugin_name', sanitize_text_field($plugin_name));
+        if (!empty($user_ip)) {
+            update_post_meta($license_id, '_user_ip', sanitize_text_field($user_ip));
         }
 
-        if (!empty($plugin_version)) {
-            update_post_meta($license_id, '_plugin_version', sanitize_text_field($plugin_version));
+        if (!empty($browser)) {
+            update_post_meta($license_id, '_browser', sanitize_text_field($browser));
+        }
+        
+        if (!empty($device_type)) {
+            update_post_meta($license_id, '_device_type', sanitize_text_field($device_type));
         }
 
         // Retrieve license status, expiration date, usage URL, WP version, Web server and Server IP
@@ -1042,6 +1072,9 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         $stored_php_version = get_post_meta($license_id, '_php_version', true);
         $stored_plugin_name = get_post_meta($license_id, '_plugin_name', true);
         $stored_plugin_version = get_post_meta($license_id, '_plugin_version', true);
+        $stored_user_ip = get_post_meta($license_id, '_user_ip', true);
+        $stored_browser = get_post_meta($license_id, '_browser', true);
+        $stored_device_type = get_post_meta($license_id, '_device_type', true);
 
         $response_data = array(
             'status'           => $license_status,
@@ -1053,6 +1086,9 @@ if (!function_exists('smarty_vslm_check_license_status')) {
             'php_version'      => $stored_php_version,
             'plugin_name'      => $stored_plugin_name,
             'plugin_version'   => $stored_plugin_version,
+            'user_ip'          => $stored_user_ip,
+            'browser'          => $stored_browser,
+            'device_type'      => $stored_device_type,
         );
 
         if ($multi_domain === '1') {
