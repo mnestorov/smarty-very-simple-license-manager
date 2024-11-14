@@ -265,13 +265,18 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
 
         // Retrieve plugin information
-        $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: 'Not recorded yet';
-        $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: 'Not recorded yet';
+        $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+        $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
 
         // Retrieve additional server information
-        $web_server = get_post_meta($post->ID, '_web_server', true) ?: 'Not recorded yet';
-        $server_ip = get_post_meta($post->ID, '_server_ip', true) ?: 'Not recorded yet';
-        $php_version = get_post_meta($post->ID, '_php_version', true) ?: 'Not recorded yet'; ?>
+        $web_server = get_post_meta($post->ID, '_web_server', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+        $server_ip = get_post_meta($post->ID, '_server_ip', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+        $php_version = get_post_meta($post->ID, '_php_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+
+        // Retrieve additional user info
+        $user_ip = get_post_meta($post->ID, '_user_ip', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+        $browser = get_post_meta($post->ID, '_browser', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
+        $device_type = get_post_meta($post->ID, '_device_type', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager')); ?>
 
         <!-- Two-column layout styling -->
         <div class="smarty-vslm-two-col">
@@ -280,17 +285,17 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                 <table class="smarty-vslm-license-table">
                     <!-- License Key with Generate Button -->
                     <tr>
-                        <td><label><?php echo __('License Key', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('License Key', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td>
                             <div class="smarty-vslm-field-wrapper">
                                 <input type="text" name="license_key" id="smarty_vslm_license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
-                                <button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php echo __('Generate Key', 'smarty-very-simple-license-manager'); ?></button>
+                                <button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php esc_html(_e('Generate Key', 'smarty-very-simple-license-manager')); ?></button>
                             </div>
                         </td>
                     </tr>
                     <!-- Status -->
                     <tr>
-                        <td><label><?php echo __('Status', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Status', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td>
                             <select name="status">
                                 <?php foreach (array('active', 'inactive', 'expired') as $option) : ?>
@@ -301,7 +306,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                         </td>
                     </tr>
                     <tr>
-                        <td><label><?php echo __('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td>
                             <label class="smarty-vslm-checkbox">
                                 <input type="checkbox" name="multi_domain" value="1" <?php checked($multi_domain, '1'); ?> />
@@ -314,38 +319,38 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     </tr>
                     <!-- Product -->
                     <tr>
-                        <td><label><?php echo __('Product', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Product', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td>
                             <?php
                             wp_dropdown_categories(array(
-                                'taxonomy' => 'product',
-                                'name' => 'product',
-                                'show_option_none' => '-- Select a Product --',
-                                'selected' => $product_terms ? $product_terms[0]->term_id : '',
-                                'required' => true,
-                                'hide_empty' => false,
+                                'taxonomy'          => 'product',
+                                'name'              => 'product',
+                                'show_option_none'  => esc_html(__('-- Select a Product --', 'smarty-very-simple-license-manager')),
+                                'selected'          => $product_terms ? $product_terms[0]->term_id : '',
+                                'required'          => true,
+                                'hide_empty'        => false,
                             ));
                             ?>
                         </td>
                     </tr>
                     <!-- Client Name -->
                     <tr>
-                        <td><label><?php echo __('Client Name', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Client Name', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="client_name" value="<?php echo esc_attr($client_name); ?>" required/></td>
                     </tr>
                     <!-- Client Email -->
                     <tr>
-                        <td><label><?php echo __('Client Email', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Client Email', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="email" name="client_email" value="<?php echo esc_attr($client_email); ?>"/></td>
                     </tr>
                     <!-- Purchase Date -->
                     <tr>
-                        <td><label><?php echo __('Purchase Date', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Purchase Date', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="date" name="purchase_date" value="<?php echo esc_attr($purchase_date); ?>"/></td>
                     </tr>
                     <!-- Expiration Date -->
                     <tr>
-                        <td><label><?php echo __('Expiration Date', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Expiration Date', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
                     </tr>
                 </table>
@@ -356,12 +361,12 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                 <table class="smarty-vslm-license-table">
                     <!-- Plugin Name -->
                     <tr>
-                        <td><label><?php echo __('Plugin Name', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
                     </tr>
                     <!-- Plugin Version -->
                     <tr>
-                        <td><label><?php echo __('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Plugin Version', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
                     </tr>
                     <tr>
@@ -370,54 +375,54 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     <!-- Usage URLs (only displayed if multi-domain is enabled) -->
                     <?php if ($multi_domain) : ?>
                         <tr>
-                            <td><label><?php echo __('Usage URLs', 'smarty-very-simple-license-manager'); ?></label></td>
+                            <td><label><?php esc_html(_e('Usage URLs', 'smarty-very-simple-license-manager')); ?></label></td>
                             <td class="usage-urls">
                                 <?php foreach ($usage_urls as $url): ?>
-                                    <input type="text" value="<?php echo esc_url($url); ?>" readonly /><br/>
+                                    <input type="text" value="<?php echo esc_html($url); ?>" readonly /><br/>
                                 <?php endforeach; ?>
                             </td>
                         </tr>
                     <?php else: ?>
                         <!-- Usage URL -->
                         <tr>
-                            <td><label><?php echo __('Usage URL', 'smarty-very-simple-license-manager'); ?></label></td>
-                            <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : 'Not recorded yet'); ?>" readonly /></td>
+                            <td><label><?php esc_html(_e('Usage URL', 'smarty-very-simple-license-manager')); ?></label></td>
+                            <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'))); ?>" readonly /></td>
                         </tr>
                     <?php endif; ?>
                     <!-- WordPress Version -->
                     <tr>
-                        <td><label><?php echo __('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="wp_version" value="<?php echo ($wp_version ? esc_html($wp_version) : 'Not recorded yet'); ?>" readonly /></td>
+                        <td><label><?php esc_html(_e('WP Version', 'smarty-very-simple-license-manager')); ?></label></td>
+                        <td><input type="text" name="wp_version" value="<?php echo ($wp_version ? esc_html($wp_version) : esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'))); ?>" readonly /></td>
                     </tr>
                     <!-- Web Server -->
                     <tr>
-                        <td><label><?php echo __('Web Server', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Web Server', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="web_server" value="<?php echo esc_html($web_server); ?>" readonly /></td>
                     </tr>
                     <!-- Server IP -->
                     <tr>
-                        <td><label><?php echo __('Server IP', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('Server IP', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip); ?>" readonly /></td>
                     </tr>
                     <!-- PHP Version -->
                     <tr>
-                        <td><label><?php echo __('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                        <td><label><?php esc_html(_e('PHP Version', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
                     </tr>
                     <!--  User IP  -->
                     <tr>
-                        <td><label><?php echo __('User IP', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="user_ip" value="<?php echo esc_attr(get_post_meta($post->ID, '_user_ip', true)); ?>" readonly /></td>
+                        <td><label><?php esc_html(_e('User IP', 'smarty-very-simple-license-manager')); ?></label></td>
+                        <td><input type="text" name="user_ip" value="<?php echo esc_html($user_ip); ?>" readonly /></td>
                     </tr>
                     <!--  Browser Type  -->
                     <tr>
-                        <td><label><?php echo __('Browser', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="browser" value="<?php echo esc_attr(get_post_meta($post->ID, '_browser', true)); ?>" readonly /></td>
+                        <td><label><?php esc_html(_e('Browser', 'smarty-very-simple-license-manager')); ?></label></td>
+                        <td><input type="text" name="browser" value="<?php echo esc_html($browser); ?>" readonly /></td>
                     </tr>
                     <!-- Device Type -->
                     <tr>
-                        <td><label><?php echo __('Device Type', 'smarty-very-simple-license-manager'); ?></label></td>
-                        <td><input type="text" name="device_type" value="<?php echo esc_attr(get_post_meta($post->ID, '_device_type', true)); ?>" readonly /></td>
+                        <td><label><?php esc_html(_e('Device Type', 'smarty-very-simple-license-manager')); ?></label></td>
+                        <td><input type="text" name="device_type" value="<?php echo esc_html($device_type); ?>" readonly /></td>
                     </tr>
                 </table>
             </div> <!-- End right column -->
@@ -517,15 +522,15 @@ if (!function_exists('smarty_vslm_register_product_taxonomy')) {
     function smarty_vslm_register_product_taxonomy() {
         register_taxonomy('product', 'vslm-licenses', array(
             'labels' => array(
-                'name'          => 'Products',
-                'singular_name' => 'Product',
-                'search_items'  => 'Search Products',
-                'all_items'     => 'All Products',
-                'edit_item'     => 'Edit Product',
-                'view_item'     => 'View Product',
-                'add_new_item'  => 'Add New Product',
-                'new_item_name' => 'New Product Name',
-                'menu_name'     => 'Products',
+                'name'          => esc_html(__('Products', 'smarty-very-simple-license-manager')),
+                'singular_name' => esc_html(__('Product', 'smarty-very-simple-license-manager')),
+                'search_items'  => esc_html(__('Search Products', 'smarty-very-simple-license-manager')),
+                'all_items'     => esc_html(__('All Products', 'smarty-very-simple-license-manager')),
+                'edit_item'     => esc_html(__('Edit Product', 'smarty-very-simple-license-manager')),
+                'view_item'     => esc_html(__('View Product', 'smarty-very-simple-license-manager')),
+                'add_new_item'  => esc_html(__('Add New Product', 'smarty-very-simple-license-manager')),
+                'new_item_name' => esc_html(__('New Product Name', 'smarty-very-simple-license-manager')),
+                'menu_name'     => esc_html(__('Products', 'smarty-very-simple-license-manager')),
             ),
             'hierarchical'  => true,
             'show_ui'       => true,
@@ -613,14 +618,14 @@ if (!function_exists('smarty_vslm_add_license_columns')) {
         unset($columns['title']);
         // Define the new columns order, placing "Product" first
         $new_columns = array(
-            'product'         => 'Product',
-            'license_key'     => 'License Key',
-            'purchase_date'   => 'Purchase Date',
-            'expiration_date' => 'Expiration Date',
-            'client_name'     => 'Client Name',
-            'client_email'    => 'Client Email',
-            'usage_urls'      => 'Usage URL(s)',
-            'license_status'  => 'Status',
+            'product'         => esc_html(__('Product', 'smarty-very-simple-license-manager')),
+            'license_key'     => esc_html(__('License Key', 'smarty-very-simple-license-manager')),
+            'purchase_date'   => esc_html(__('Purchase Date', 'smarty-very-simple-license-manager')),
+            'expiration_date' => esc_html(__('Expiration Date', 'smarty-very-simple-license-manager')),
+            'client_name'     => esc_html(__('Client Name', 'smarty-very-simple-license-manager')),
+            'client_email'    => esc_html(__('Client Email', 'smarty-very-simple-license-manager')),
+            'usage_urls'      => esc_html(__('Usage URL(s)', 'smarty-very-simple-license-manager')),
+            'license_status'  => esc_html(__('Status', 'smarty-very-simple-license-manager')),
         );
 
         return $new_columns;
@@ -833,7 +838,7 @@ if (!function_exists('smarty_vslm_settings_page_html')) {
 
                 <!-- Warning message -->
                 <div style="background-color: #fff3cd; border: 1px solid #e5d4a2; border-left: 4px solid #e5d4a2; border-radius: 3px; padding: 10px; margin-top: 20px;">
-                    <p><?php _e('The Consumer Key and Consumer Secret keys are used to authenticate API requests for the License Manager.</p><p>These keys should be generated once and not changed thereafter.</p><p>Altering them could disrupt existing API integrations that rely on these keys for secure access.', 'smarty-very-simple-license-manager'); ?></p>
+                    <p><?php esc_html(_e('The Consumer Key and Consumer Secret keys are used to authenticate API requests for the License Manager.</p><p>These keys should be generated once and not changed thereafter.</p><p>Altering them could disrupt existing API integrations that rely on these keys for secure access.', 'smarty-very-simple-license-manager')); ?></p>
                 </div>
 
                 <?php submit_button(); ?>
@@ -856,7 +861,7 @@ if (!function_exists('smarty_vslm_register_settings')) {
             'smarty_vslm_section_general',                          // ID of the section
             __('General', 'smarty-very-simple-license-manager'),    // Title of the section
             'smarty_vslm_section_general_callback',                 // Callback function that fills the section with the desired content
-            'smarty_vslm_settings'                       // Page on which to add the section
+            'smarty_vslm_settings'                                  // Page on which to add the section
         );
 
         add_settings_field(
@@ -882,9 +887,9 @@ if (!function_exists('smarty_vslm_section_general_callback')) {
     /**
      * General section callback for the License Manager.
      */
-    function smarty_vslm_section_general_callback() {
-        echo '<p>' . __('General settings for the License Manager.', 'smarty-very-simple-license-manager') . '</p>';
-        echo '<hr>';
+    function smarty_vslm_section_general_callback() { ?>
+        <p><?php echo esc_html(_e('General settings for the License Manager.', 'smarty-very-simple-license-manager')); ?></p>
+        <hr><?php
     }
 }
 
@@ -897,10 +902,10 @@ if (!function_exists('smarty_vslm_ck_key_callback')) {
      * Callback to display and regenerate the CK Key field.
      */
     function smarty_vslm_ck_key_callback() {
-        $ck_key = get_option('smarty_vslm_ck_key');
-        echo '<input type="text" id="smarty_vslm_ck_key" name="smarty_vslm_ck_key" value="' . esc_attr($ck_key) . '" readonly />';
-        echo '<button type="button" id="smarty_vslm_generate_ck_key" class="button">Generate</button>';
-        echo '<p class="description">This Consumer Key is used for API authentication. Click "Generate" to create a new one.</p>';
+        $ck_key = get_option('smarty_vslm_ck_key'); ?>
+        <input type="text" id="smarty_vslm_ck_key" name="smarty_vslm_ck_key" value="<?php echo esc_attr($ck_key); ?>" readonly />
+        <button type="button" id="smarty_vslm_generate_ck_key" class="button"><?php esc_html(_e('Generate', 'smarty-very-simple-license-manager')); ?></button>
+        <p class="description"><?php esc_html(_e('This Consumer Key is used for API authentication. Click "Generate" to create a new one.', 'smarty-very-simple-license-manager')); ?></p><?php
     }
 }
 
@@ -909,10 +914,10 @@ if (!function_exists('smarty_vslm_cs_key_callback')) {
      * Callback to display and regenerate the CS Key field.
      */
     function smarty_vslm_cs_key_callback() {
-        $cs_key = get_option('smarty_vslm_cs_key');
-        echo '<input type="text" id="smarty_vslm_cs_key" name="smarty_vslm_cs_key" value="' . esc_attr($cs_key) . '" readonly />';
-        echo '<button type="button" id="smarty_vslm_generate_cs_key" class="button">Generate</button>';
-        echo '<p class="description">This Consumer Secret is used as a secret key for API requests. Click "Generate" to create a new one.</p>';
+        $cs_key = get_option('smarty_vslm_cs_key'); ?>
+        <input type="text" id="smarty_vslm_cs_key" name="smarty_vslm_cs_key" value="<?php echo esc_attr($cs_key); ?>" readonly />
+        <button type="button" id="smarty_vslm_generate_cs_key" class="button"><?php esc_html(_e('Generate', 'smarty-very-simple-license-manager')); ?></button>
+        <p class="description"><?php esc_html(_e('This Consumer Secret is used as a secret key for API requests. Click "Generate" to create a new one.', 'smarty-very-simple-license-manager')); ?></p><?php
     }
 }
 
