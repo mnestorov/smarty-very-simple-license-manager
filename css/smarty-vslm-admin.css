@@ -56,21 +56,19 @@
     transform: rotate(45deg);
 }
 
-/* Two-column Layout */
-.smarty-vslm-two-col {
-    display: flex; 
-    gap: 20px;
+/* Three-column Layout */
+.smarty-vslm-three-col {
+    display: flex;
+    gap: 10px;
 }
 
-.smarty-vslm-two-col > .smarty-vslm-left-col {
-    flex: 1; 
-    padding: 10px;
-}
-
-.smarty-vslm-two-col > .smarty-vslm-right-col {
-    flex: 1; 
-    padding: 10px; 
+.smarty-vslm-left-col, .smarty-vslm-center-col, .smarty-vslm-right-col {
+    flex: 1;
     border-left: 1px solid #ddd;
+}
+
+.smarty-vslm-left-col {
+    border-left: none;
 }
 
 .smarty-vslm-license-table {

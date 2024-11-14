@@ -279,7 +279,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $device_type = get_post_meta($post->ID, '_device_type', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager')); ?>
 
         <!-- Two-column layout styling -->
-        <div class="smarty-vslm-two-col">
+        <div class="smarty-vslm-three-col">
             <!-- Left column with main fields -->
             <div class="smarty-vslm-left-col">
                 <table class="smarty-vslm-license-table">
@@ -356,8 +356,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                 </table>
             </div> <!-- End left column -->
 
-            <!-- Right column with Usage URL -->
-            <div class="smarty-vslm-right-col">
+            <div class="smarty-vslm-center-col">
                 <table class="smarty-vslm-license-table">
                     <!-- Plugin Name -->
                     <tr>
@@ -409,6 +408,12 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                         <td><label><?php esc_html(_e('PHP Version', 'smarty-very-simple-license-manager')); ?></label></td>
                         <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
                     </tr>
+                </table>
+            </div> <!-- End center column -->
+
+            <!-- Right column with Usage URL -->
+            <div class="smarty-vslm-right-col">
+                <table class="smarty-vslm-license-table">
                     <!--  User IP  -->
                     <tr>
                         <td><label><?php esc_html(_e('User IP', 'smarty-very-simple-license-manager')); ?></label></td>
@@ -427,7 +432,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                 </table>
             </div> <!-- End right column -->
 
-        </div> <!-- End two-column layout -->
+        </div> <!-- End three-column layout -->
 
         <?php
         // Add nonce field for security
@@ -806,8 +811,8 @@ if (!function_exists('smarty_vslm_settings_page')) {
      */
     function smarty_vslm_settings_page() {
         add_options_page(
-            'License Manager | Settings', 
-            'License Manager', 
+            __('License Manager | Settings', 'smarty-very-simple-license-manager'),
+            __('License Manager', 'smarty-very-simple-license-manager'),
             'manage_options', 
             'smarty-vslm-settings', 
             'smarty_vslm_settings_page_html'
@@ -866,7 +871,7 @@ if (!function_exists('smarty_vslm_register_settings')) {
 
         add_settings_field(
             'smarty_vslm_ck_key', 
-            'Consumer Key', 
+            __('Consumer Key', 'smarty-very-simple-license-manager'),
             'smarty_vslm_ck_key_callback', 
             'smarty_vslm_settings', 
             'smarty_vslm_section_general'
@@ -874,7 +879,7 @@ if (!function_exists('smarty_vslm_register_settings')) {
 
         add_settings_field(
             'smarty_vslm_cs_key', 
-            'Consumer Secret', 
+            __('Consumer Secret', 'smarty-very-simple-license-manager'),
             'smarty_vslm_cs_key_callback', 
             'smarty_vslm_settings', 
             'smarty_vslm_section_general'
