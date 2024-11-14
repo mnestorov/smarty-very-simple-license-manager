@@ -1,20 +1,24 @@
 <?php
 /**
- * Plugin Name:             SM - Very Simple License Manager
- * Plugin URI:              https://github.com/mnestorov/smarty-very-simple-license-manager
- * Description:             A plugin to manage licenses with custom post types, status management, and API keys.
- * Version:                 1.0.0
- * Author:                  Smarty Studio | Martin Nestorov
- * Author URI:              https://github.com/mnestorov
- * License:                 GPL-2.0+
- * License URI:             http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:             smarty-very-simple-license-manager
+ * Plugin Name:     SM - Very Simple License Manager
+ * Plugin URI:      https://github.com/mnestorov/smarty-very-simple-license-manager
+ * Description:     A plugin to manage licenses with custom post types, status management, and API keys.
+ * Version:         1.0.0
+ * Author:          Smarty Studio | Martin Nestorov
+ * Author URI:      https://github.com/mnestorov
+ * License:         GPL-2.0+
+ * License URI:     http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:     smarty-very-simple-license-manager
  */
 
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
 	die;
 }
+
+/////////////////////////////////////////////////////////
+// Enqueue Scripts and Styles for Admin
+/////////////////////////////////////////////////////////
 
 if (!function_exists('smarty_vslm_enqueue_admin_scripts')) {
     /**
@@ -48,15 +52,19 @@ if (!function_exists('smarty_vslm_enqueue_admin_scripts')) {
     add_action('admin_enqueue_scripts', 'smarty_vslm_enqueue_admin_scripts');
 }
 
+/////////////////////////////////////////////////////////
+// Dashboard Widget
+/////////////////////////////////////////////////////////
+
 if (!function_exists('smarty_vslm_add_dashboard_widget')) {
     /**
      * Register the custom dashboard widget.
      */
     function smarty_vslm_add_dashboard_widget() {
         wp_add_dashboard_widget(
-            'smarty_vslm_dashboard_widget',      // Widget ID
-            'License Manager Overview',          // Widget Title
-            'smarty_vslm_dashboard_widget_render' // Callback function to display content
+            'smarty_vslm_dashboard_widget',         // Widget ID
+            'License Manager Overview',             // Widget Title
+            'smarty_vslm_dashboard_widget_render'   // Callback function to display content
         );
     }
     add_action('wp_dashboard_setup', 'smarty_vslm_add_dashboard_widget');
@@ -82,7 +90,7 @@ if (!function_exists('smarty_vslm_dashboard_widget_render')) {
         echo '</h3>';
 
         // Table with detailed license counts
-        echo '<table class="license-summary-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        echo '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
         echo '<thead>';
         echo '<tr style="background-color: #f5f5f5; border-bottom: 1px solid #ddd;">';
         echo '<th style="border-top: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>';
@@ -127,6 +135,10 @@ if (!function_exists('smarty_vslm_get_license_count_by_status')) {
         return $query->found_posts;
     }
 }
+
+/////////////////////////////////////////////////////////
+// License Custom Post Type and Taxonomy
+/////////////////////////////////////////////////////////
 
 if (!function_exists('smarty_vslm_register_license_post_type')) {
     /**
@@ -188,6 +200,10 @@ if (!function_exists('smarty_vslm_license_post_updated_messages')) {
     add_filter('post_updated_messages', 'smarty_vslm_license_post_updated_messages');
 }
 
+/////////////////////////////////////////////////////////
+// Custom Meta Boxes on Add/Edit Page
+/////////////////////////////////////////////////////////
+
 if (!function_exists('smarty_vslm_add_license_meta_boxes')) {
     /**
      * Add custom meta boxes for license details in the license edit screen, with status dot after the title.
@@ -221,10 +237,10 @@ if (!function_exists('smarty_vslm_license_meta_box_title')) {
         $dot_color = $status === 'active' ? '#28a745' : ($status === 'inactive' ? '#dc3545' : ($status === 'expired' ? '#427eab' : 'gray'));
 
         // Set class based on status to handle the pulse effect only for 'active'
-        $status_class = 'status-circle-container--' . $status;
+        $status_class = 'smarty-vslm-status-circle-container--' . $status;
 
         // Return the title with a container for the pulsing effect
-        return 'License Details <span class="status-circle-container ' . esc_attr($status_class) . '"><span class="status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
+        return 'License Details <span class="smarty-vslm-status-circle-container ' . esc_attr($status_class) . '"><span class="smarty-vslm-status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
     }
 }
 
@@ -258,18 +274,17 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $php_version = get_post_meta($post->ID, '_php_version', true) ?: 'Not recorded yet'; ?>
 
         <!-- Two-column layout styling -->
-        <div style="display: flex; gap: 20px;">
-
+        <div class="smarty-vslm-two-col">
             <!-- Left column with main fields -->
-            <div style="flex: 1; padding: 10px;">
-                <table class="license-table">
+            <div class="smarty-vslm-left-col">
+                <table class="smarty-vslm-license-table">
                     <!-- License Key with Generate Button -->
                     <tr>
                         <td><label><?php echo __('License Key', 'smarty-very-simple-license-manager'); ?></label></td>
                         <td>
-                            <div class="field-wrapper">
-                                <input type="text" name="license_key" id="license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
-                                <button type="button" class="button generate-key-button" onclick="generateLicenseKey()"><?php echo __('Generate Key', 'smarty-very-simple-license-manager'); ?></button>
+                            <div class="smarty-vslm-field-wrapper">
+                                <input type="text" name="license_key" id="smarty_vslm_license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
+                                <button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php echo __('Generate Key', 'smarty-very-simple-license-manager'); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -288,7 +303,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     <tr>
                         <td><label><?php echo __('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager'); ?></label></td>
                         <td>
-                            <label class="custom-checkbox">
+                            <label class="smarty-vslm-checkbox">
                                 <input type="checkbox" name="multi_domain" value="1" <?php checked($multi_domain, '1'); ?> />
                                 <span class="checkmark"></span>
                             </label>
@@ -337,8 +352,8 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
             </div> <!-- End left column -->
 
             <!-- Right column with Usage URL -->
-            <div style="flex: 1; padding: 10px; border-left: 1px solid #ddd;">
-                <table class="license-table">
+            <div class="smarty-vslm-right-col">
+                <table class="smarty-vslm-license-table">
                     <!-- Plugin Name -->
                     <tr>
                         <td><label><?php echo __('Plugin Name', 'smarty-very-simple-license-manager'); ?></label></td>
@@ -507,6 +522,10 @@ if (!function_exists('smarty_vslm_register_product_taxonomy')) {
     add_action('init', 'smarty_vslm_register_product_taxonomy');
 }
 
+/////////////////////////////////////////////////////////
+// Admin Bar Styling
+/////////////////////////////////////////////////////////
+
 if (!function_exists('smarty_vslm_remove_admin_bar_view_posts')) {
     /**
      * Remove the "View Posts" link from the admin bar for the License post type.
@@ -528,6 +547,10 @@ if (!function_exists('smarty_vslm_remove_admin_bar_view_posts')) {
     }
     add_action('admin_bar_menu', 'smarty_vslm_remove_admin_bar_view_posts', 999);
 }
+
+/////////////////////////////////////////////////////////
+// Custom Columns in Licenses List
+/////////////////////////////////////////////////////////
 
 if (!function_exists('smarty_vslm_remove_view_link')) {
     /**
@@ -602,18 +625,18 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             $license_key = get_post_meta($post_id, '_license_key', true);
             $masked_key = substr($license_key, 0, 4) . '-XXXX-XXXX-XXXX';
 
-            echo '<div class="license-key-wrapper">';
+            echo '<div class="smarty-vslm-license-key-wrapper">';
             
             // Masked key
-            echo '<span class="masked-key" style="vertical-align: middle;">' . esc_html($masked_key) . '</span>';
-            echo '<input type="hidden" class="full-key" value="' . esc_attr($license_key) . '" />';
+            echo '<span class="smarty-vslm-masked-key" style="vertical-align: middle;">' . esc_html($masked_key) . '</span>';
+            echo '<input type="hidden" class="smarty-vslm-full-key" value="' . esc_attr($license_key) . '" />';
         
             // Show/Hide and Copy links
-            echo '<div class="key-toggle-links">';
-            echo '<a href="#" class="row-actions show-key-link">Show</a>';
-            echo '<a href="#" class="row-actions hide-key-link" style="display:none;">Hide</a>';
+            echo '<div class="smarty-vslm-key-toggle-links">';
+            echo '<a href="#" class="row-actions smarty-vslm-show-key-link">Show</a>';
+            echo '<a href="#" class="row-actions smarty-vslm-hide-key-link" style="display:none;">Hide</a>';
             echo '<span class="row-actions">|</span>';
-            echo '<a href="#" class="row-actions copy-key-link" onclick="copyLicenseKey(this, \'' . esc_attr($license_key) . '\')">Copy</a>';
+            echo '<a href="#" class="row-actions smarty-vslm-copy-key-link" onclick="copyLicenseKey(this, \'' . esc_attr($license_key) . '\')">Copy</a>';
             echo '</div>';
             
             echo '</div>';
@@ -622,11 +645,11 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             $status_text = ucfirst($status);
             
             if ($status === 'active') {
-                echo '<span class="status-badge active">' . $status_text . '</span>';
+                echo '<span class="smarty-vslm-status-badge active">' . $status_text . '</span>';
             } elseif ($status === 'inactive') {
-                echo '<span class="status-badge inactive">' . $status_text . '</span>';
+                echo '<span class="smarty-vslm-status-badge inactive">' . $status_text . '</span>';
             } elseif ($status === 'expired') {
-                echo '<span class="status-badge expired">' . $status_text . '</span>';
+                echo '<span class="smarty-vslm-status-badge expired">' . $status_text . '</span>';
             } else {
                 echo '<span>' . $status_text . '</span>';
             }
@@ -682,6 +705,10 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
     add_action('manage_vslm-licenses_posts_custom_column', 'smarty_vslm_fill_license_columns', 10, 2);
 }
 
+/////////////////////////////////////////////////////////
+// License Status Sorting
+/////////////////////////////////////////////////////////
+
 if (!function_exists('smarty_vslm_sortable_license_columns')) {
     /**
      * Define sortable columns for License Key and Status.
@@ -717,6 +744,10 @@ if (!function_exists('smarty_vslm_orderby_license_columns')) {
     add_action('pre_get_posts', 'smarty_vslm_orderby_license_columns');
 }
 
+/////////////////////////////////////////////////////////
+// Cron Job for Expired License Check
+/////////////////////////////////////////////////////////
+
 if (!function_exists('smarty_vslm_schedule_cron_job')) {
     /**
      * Schedule a daily cron job to check for expired licenses.
@@ -745,27 +776,31 @@ if (!function_exists('smarty_vslm_check_expired_licenses')) {
     add_action('smarty_vslm_license_check', 'smarty_vslm_check_expired_licenses');
 }
 
-if (!function_exists('smarty_license_manager_settings_page')) {
+/////////////////////////////////////////////////////////
+// Settings Page for API Key Management
+/////////////////////////////////////////////////////////
+
+if (!function_exists('smarty_vslm_settings_page')) {
     /**
      * Create settings page for API key management.
      */
-    function smarty_license_manager_settings_page() {
+    function smarty_vslm_settings_page() {
         add_options_page(
             'License Manager | Settings', 
             'License Manager', 
             'manage_options', 
             'smarty-vslm-settings', 
-            'smarty_license_manager_settings_page_html'
+            'smarty_vslm_settings_page_html'
         );
     }
-    add_action('admin_menu', 'smarty_license_manager_settings_page');
+    add_action('admin_menu', 'smarty_vslm_settings_page');
 }
 
-if (!function_exists('smarty_license_manager_settings_page_html')) {
+if (!function_exists('smarty_vslm_settings_page_html')) {
     /**
      * Settings page HTML.
      */
-    function smarty_license_manager_settings_page_html() {
+    function smarty_vslm_settings_page_html() {
         // Check user capabilities
         if (!current_user_can('manage_options')) {
             return;
@@ -777,8 +812,8 @@ if (!function_exists('smarty_license_manager_settings_page_html')) {
             <h1><?php esc_html_e('License Manager | Settings', 'smarty-very-simple-license-manager'); ?></h1>
             <form method="post" action="options.php">
                 <?php
-                settings_fields('smarty_license_manager_settings'); 
-                do_settings_sections('smarty_license_manager_settings');
+                settings_fields('smarty_vslm_settings'); 
+                do_settings_sections('smarty_vslm_settings');
                 ?>
 
                 <!-- Warning message -->
@@ -793,39 +828,39 @@ if (!function_exists('smarty_license_manager_settings_page_html')) {
     }
 }
 
-if (!function_exists('smarty_license_manager_register_settings')) {
+if (!function_exists('smarty_vslm_register_settings')) {
     /**
      * Register settings for CK_KEY and CS_KEY in License Manager.
      */
-    function smarty_license_manager_register_settings() {
-        register_setting('smarty_license_manager_settings', 'license_manager_ck_key');
-        register_setting('smarty_license_manager_settings', 'license_manager_cs_key');
+    function smarty_vslm_register_settings() {
+        register_setting('smarty_vslm_settings', 'smarty_vslm_ck_key');
+        register_setting('smarty_vslm_settings', 'smarty_vslm_cs_key');
 
         // Add General section
         add_settings_section(
             'smarty_vslm_section_general',                          // ID of the section
             __('General', 'smarty-very-simple-license-manager'),    // Title of the section
             'smarty_vslm_section_general_callback',                 // Callback function that fills the section with the desired content
-            'smarty_license_manager_settings'                       // Page on which to add the section
+            'smarty_vslm_settings'                       // Page on which to add the section
         );
 
         add_settings_field(
-            'license_manager_ck_key', 
+            'smarty_vslm_ck_key', 
             'Consumer Key', 
-            'smarty_license_manager_ck_key_callback', 
-            'smarty_license_manager_settings', 
+            'smarty_vslm_ck_key_callback', 
+            'smarty_vslm_settings', 
             'smarty_vslm_section_general'
         );
 
         add_settings_field(
-            'license_manager_cs_key', 
+            'smarty_vslm_cs_key', 
             'Consumer Secret', 
-            'smarty_license_manager_cs_key_callback', 
-            'smarty_license_manager_settings', 
+            'smarty_vslm_cs_key_callback', 
+            'smarty_vslm_settings', 
             'smarty_vslm_section_general'
         );
     }
-    add_action('admin_init', 'smarty_license_manager_register_settings');
+    add_action('admin_init', 'smarty_vslm_register_settings');
 }
 
 if (!function_exists('smarty_vslm_section_general_callback')) {
@@ -838,29 +873,37 @@ if (!function_exists('smarty_vslm_section_general_callback')) {
     }
 }
 
-if (!function_exists('smarty_license_manager_ck_key_callback')) {
+/////////////////////////////////////////////////////////
+// AJAX Functions for CK and CS Key Generation
+/////////////////////////////////////////////////////////
+
+if (!function_exists('smarty_vslm_ck_key_callback')) {
     /**
      * Callback to display and regenerate the CK Key field.
      */
-    function smarty_license_manager_ck_key_callback() {
-        $ck_key = get_option('license_manager_ck_key');
-        echo '<input type="text" id="ck_key" name="license_manager_ck_key" value="' . esc_attr($ck_key) . '" readonly />';
-        echo '<button type="button" id="generate_ck_key" class="button">Generate</button>';
+    function smarty_vslm_ck_key_callback() {
+        $ck_key = get_option('smarty_vslm_ck_key');
+        echo '<input type="text" id="smarty_vslm_ck_key" name="smarty_vslm_ck_key" value="' . esc_attr($ck_key) . '" readonly />';
+        echo '<button type="button" id="smarty_vslm_generate_ck_key" class="button">Generate</button>';
         echo '<p class="description">This Consumer Key is used for API authentication. Click "Generate" to create a new one.</p>';
     }
 }
 
-if (!function_exists('smarty_license_manager_cs_key_callback')) {
+if (!function_exists('smarty_vslm_cs_key_callback')) {
     /**
      * Callback to display and regenerate the CS Key field.
      */
-    function smarty_license_manager_cs_key_callback() {
-        $cs_key = get_option('license_manager_cs_key');
-        echo '<input type="text" id="cs_key" name="license_manager_cs_key" value="' . esc_attr($cs_key) . '" readonly />';
-        echo '<button type="button" id="generate_cs_key" class="button">Generate</button>';
+    function smarty_vslm_cs_key_callback() {
+        $cs_key = get_option('smarty_vslm_cs_key');
+        echo '<input type="text" id="smarty_vslm_cs_key" name="smarty_vslm_cs_key" value="' . esc_attr($cs_key) . '" readonly />';
+        echo '<button type="button" id="smarty_vslm_generate_cs_key" class="button">Generate</button>';
         echo '<p class="description">This Consumer Secret is used as a secret key for API requests. Click "Generate" to create a new one.</p>';
     }
 }
+
+/////////////////////////////////////////////////////////
+// REST API for License Status Check
+/////////////////////////////////////////////////////////
 
 if (!function_exists('smarty_vslm_register_license_status_endpoint')) {
     /**
@@ -868,8 +911,8 @@ if (!function_exists('smarty_vslm_register_license_status_endpoint')) {
      */
     function smarty_vslm_register_license_status_endpoint() {
         register_rest_route('smarty-vslm/v1', '/check-license', array(
-            'methods' => 'GET',
-            'callback' => 'smarty_vslm_check_license_status',
+            'methods'             => 'GET',
+            'callback'            => 'smarty_vslm_check_license_status',
             'permission_callback' => 'smarty_vslm_basic_auth_permission_check',
         ));
     }
@@ -892,8 +935,8 @@ if (!function_exists('smarty_vslm_basic_auth_permission_check')) {
                 list($provided_ck_key, $provided_cs_key) = explode(':', $decoded_credentials, 2);
 
                 // Retrieve the stored keys
-                $stored_ck_key = get_option('license_manager_ck_key');
-                $stored_cs_key = get_option('license_manager_cs_key');
+                $stored_ck_key = get_option('smarty_vslm_ck_key');
+                $stored_cs_key = get_option('smarty_vslm_cs_key');
 
                 // Validate credentials
                 if ($provided_ck_key === $stored_ck_key && $provided_cs_key === $stored_cs_key) {
@@ -1062,7 +1105,7 @@ if (!function_exists('smarty_vslm_generate_ck_key')) {
      */
     function smarty_vslm_generate_ck_key() {
         $ck_key = 'ck_' . bin2hex(random_bytes(20)); // Generate a CK key
-        update_option('license_manager_ck_key', $ck_key);
+        update_option('smarty_vslm_ck_key', $ck_key);
         wp_send_json_success($ck_key);
     }
     add_action('wp_ajax_generate_ck_key', 'smarty_vslm_generate_ck_key');
@@ -1074,7 +1117,7 @@ if (!function_exists('smarty_vslm_generate_cs_key')) {
      */
     function smarty_vslm_generate_cs_key() {
         $cs_key = 'cs_' . bin2hex(random_bytes(20)); // Generate a CS key
-        update_option('license_manager_cs_key', $cs_key);
+        update_option('smarty_vslm_cs_key', $cs_key);
         wp_send_json_success($cs_key);
     }
     add_action('wp_ajax_generate_cs_key', 'smarty_vslm_generate_cs_key');

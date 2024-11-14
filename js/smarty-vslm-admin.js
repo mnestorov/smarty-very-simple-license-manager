@@ -2,7 +2,7 @@ function generateLicenseKey() {
     const key = [...Array(4)].map(() =>
         Math.random().toString(36).substring(2, 6).toUpperCase()
     ).join("-");
-    document.getElementById("license_key").value = key;
+    document.getElementById("smarty_vslm_license_key").value = key;
 }
 
 function copyLicenseKey(element, licenseKey) {
@@ -14,20 +14,20 @@ function copyLicenseKey(element, licenseKey) {
 }
 
 jQuery(document).ready(function($) {
-    $('.show-key-link').on('click', function(event) {
+    $('.smarty-vslm-show-key-link').on('click', function(event) {
         event.preventDefault();
-        var $wrapper = $(this).closest('.license-key-wrapper');
-        $wrapper.find('.masked-key').text($wrapper.find('.full-key').val());
+        var $wrapper = $(this).closest('.smarty-vslm-license-key-wrapper');
+        $wrapper.find('.smarty-vslm-masked-key').text($wrapper.find('.smarty-vslm-full-key').val());
         $(this).hide();
-        $wrapper.find('.hide-key-link').show();
+        $wrapper.find('.smarty-vslm-hide-key-link').show();
     });
 
-    $('.hide-key-link').on('click', function(event) {
+    $('.smarty-vslm-hide-key-link').on('click', function(event) {
         event.preventDefault();
-        var $wrapper = $(this).closest('.license-key-wrapper');
-        var maskedKey = $wrapper.find('.full-key').val().substring(0, 4) + '-XXXX-XXXX-XXXX';
-        $wrapper.find('.masked-key').text(maskedKey);
+        var $wrapper = $(this).closest('.smarty-vslm-license-key-wrapper');
+        var maskedKey = $wrapper.find('.smarty-vslm-full-key').val().substring(0, 4) + '-XXXX-XXXX-XXXX';
+        $wrapper.find('.smarty-vslm-masked-key').text(maskedKey);
         $(this).hide();
-        $wrapper.find('.show-key-link').show();
+        $wrapper.find('.smarty-vslm-show-key-link').show();
     });
 });
