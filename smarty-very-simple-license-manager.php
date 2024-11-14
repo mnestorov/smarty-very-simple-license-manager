@@ -624,6 +624,7 @@ if (!function_exists('smarty_vslm_add_license_columns')) {
         // Define the new columns order, placing "Product" first
         $new_columns = array(
             'product'         => esc_html(__('Product', 'smarty-very-simple-license-manager')),
+            'product_version' => esc_html(__('Version', 'smarty-very-simple-license-manager')),
             'license_key'     => esc_html(__('License Key', 'smarty-very-simple-license-manager')),
             'purchase_date'   => esc_html(__('Purchase Date', 'smarty-very-simple-license-manager')),
             'expiration_date' => esc_html(__('Expiration Date', 'smarty-very-simple-license-manager')),
@@ -725,9 +726,31 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             } else {
                 echo '—'; // Display a dash if no product is assigned
             }
+        } elseif ($column === 'product_version') {
+            // Retrieve the product version from the post meta
+            $product_version = get_post_meta($post_id, '_plugin_version', true);
+            
+            // Display the product version or a placeholder if not available
+            echo $product_version ? esc_html($product_version) : esc_html(__('Not recorded', 'smarty-very-simple-license-manager'));
         }
     }
     add_action('manage_vslm-licenses_posts_custom_column', 'smarty_vslm_fill_license_columns', 10, 2);
+}
+
+if (!function_exists('smarty_vslm_custom_admin_styles')) {
+    function smarty_vslm_custom_admin_styles() {
+        global $post_type;
+
+        if ('vslm-licenses' === $post_type) {
+            echo '<style>
+                .wp-list-table .column-product_version {
+                    width: 80px; /* Adjust this width as needed */
+                    text-align: center;
+                }
+            </style>';
+        }
+    }
+    add_action('admin_head', 'smarty_vslm_custom_admin_styles');
 }
 
 /////////////////////////////////////////////////////////
