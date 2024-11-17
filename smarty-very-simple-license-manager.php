@@ -234,7 +234,7 @@ if (!function_exists('smarty_vslm_license_meta_box_title')) {
         $status = get_post_meta($post->ID, '_status', true) ?: 'new';
 
         // Determine the color for the dot based on status
-        $dot_color = $status === 'active' ? '#28a745' : ($status === 'inactive' ? '#dc3545' : ($status === 'expired' ? '#427eab' : 'gray'));
+		$dot_color = $status === 'active' ? '#28a745' : '#dc3545'; // Green if active, red if inactive
 
         // Set class based on status to handle the pulse effect only for 'active'
         $status_class = 'smarty-vslm-status-circle-container--' . $status;
@@ -242,6 +242,44 @@ if (!function_exists('smarty_vslm_license_meta_box_title')) {
         // Return the title with a container for the pulsing effect
         return 'License Details <span class="smarty-vslm-status-circle-container ' . esc_attr($status_class) . '"><span class="smarty-vslm-status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
     }
+}
+
+if (!function_exists('check_client_plugin_status_for_urls')) {
+	/**
+	 * Check the client plugin status via REST API.
+	 *
+	 * @return string 'active' if the client plugin is active, 'inactive' otherwise.
+	 */
+	function check_client_plugin_status_for_urls($usage_urls, $plugin_name) {
+		$statuses = [];
+
+		foreach ($usage_urls as $url) {
+			$client_site_url = trailingslashit($url) . 'wp-json/' . $plugin_name . '/v1/plugin-status';
+			$response = wp_remote_get($client_site_url);
+
+			// Default status is 'inactive'
+			$status = 'inactive';
+
+			if (!is_wp_error($response)) {
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+
+				// Determine status based on response
+				if (isset($data['code']) && $data['code'] === 'rest_no_route') {
+					$status = 'inactive';
+				} elseif (isset($data['status']) && $data['status'] === 'active') {
+					$status = 'active';
+				}
+			}
+
+			$statuses[] = [
+				'url'    => $url,
+				'status' => $status
+			];
+		}
+
+		return $statuses;
+	}
 }
 
 if (!function_exists('smarty_vslm_license_details_callback')) {
@@ -356,87 +394,126 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     </tr>
                 </table>
             </div> <!-- End left column -->
-
+			
+            <!-- Center Column -->
             <div class="smarty-vslm-center-col">
-                <table class="smarty-vslm-license-table">
-                    <!-- Plugin Name -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
-                    </tr>
-                    <!-- Plugin Version -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Plugin Version', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
-                    </tr>
-                    <tr>
-                        <td>&nbsp;</td>
-                    </tr>
-                    <!-- Usage URLs (only displayed if multi-domain is enabled) -->
-                    <?php if ($multi_domain) : ?>
-                        <tr>
-                            <td><label><?php esc_html(_e('Usage URLs', 'smarty-very-simple-license-manager')); ?></label></td>
-                            <td class="usage-urls">
-                                <?php foreach ($usage_urls as $url): ?>
-                                    <input type="text" value="<?php echo esc_html($url); ?>" readonly /><br/>
-                                <?php endforeach; ?>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <!-- Usage URL -->
-                        <tr>
-                            <td><label><?php esc_html(_e('Usage URL', 'smarty-very-simple-license-manager')); ?></label></td>
-                            <td><input type="text" name="usage_url" value="<?php echo ($usage_url ? esc_url($usage_url) : esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'))); ?>" readonly /></td>
-                        </tr>
-                    <?php endif; ?>
-                    <!-- WordPress Version -->
-                    <tr>
-                        <td><label><?php esc_html(_e('WP Version', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="wp_version" value="<?php echo ($wp_version ? esc_html($wp_version) : esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'))); ?>" readonly /></td>
-                    </tr>
-                    <!-- Web Server -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Web Server', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="web_server" value="<?php echo esc_html($web_server); ?>" readonly /></td>
-                    </tr>
-                    <!-- Server IP -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Server IP', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip); ?>" readonly /></td>
-                    </tr>
-                    <!-- PHP Version -->
-                    <tr>
-                        <td><label><?php esc_html(_e('PHP Version', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
-                    </tr>
-                </table>
-            </div> <!-- End center column -->
-
-            <!-- Right column with Usage URL -->
-            <div class="smarty-vslm-right-col">
-                <table class="smarty-vslm-license-table">
-                    <!--  User IP  -->
-                    <tr>
-                        <td><label><?php esc_html(_e('User IP', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="user_ip" value="<?php echo esc_html($user_ip); ?>" readonly /></td>
-                    </tr>
-                    <!--  Browser Type  -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Browser', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="browser" value="<?php echo esc_html($browser); ?>" readonly /></td>
-                    </tr>
-                    <!-- Device Type -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Device Type', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="device_type" value="<?php echo esc_html($device_type); ?>" readonly /></td>
-                    </tr>
-                    <!-- OS -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Operating System', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="os" value="<?php echo esc_html($os); ?>" readonly /></td>
-                    </tr>
-                </table>
-            </div> <!-- End right column -->
+                <?php if (!$multi_domain): ?>
+                    <table class="smarty-vslm-license-table">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('Field', 'smarty-very-simple-license-manager'); ?></th>
+                                <th><?php esc_html_e('Value', 'smarty-very-simple-license-manager'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><?php esc_html_e('Plugin Version', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($plugin_version); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Usage URL', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($usage_url); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('WP Version', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($wp_version); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Web Server', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($web_server); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Server IP', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($server_ip); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('PHP Version', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($php_version); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('User IP', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($user_ip); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Browser', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($browser); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Device Type', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($device_type); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php esc_html_e('Operating System', 'smarty-very-simple-license-manager'); ?></td>
+                                <td><?php echo esc_html($os); ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <?php if (!empty($usage_urls) && is_array($usage_urls)): ?>
+						<table class="smarty-vslm-license-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e('URL', 'smarty-very-simple-license-manager'); ?></th>
+									<th><?php esc_html_e('Details', 'smarty-very-simple-license-manager'); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ($usage_urls as $url_data): ?>
+									<?php if (is_array($url_data) && isset($url_data['site_url'])): ?>
+										<tr>
+											<td><?php echo esc_html($url_data['site_url']); ?></td>
+											<td>
+												<table class="smarty-vslm-nested-table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Plugin Version:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['plugin_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('WP Version:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['wp_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Web Server:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['web_server'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Server IP:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['server_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('PHP Version:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['php_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('User IP:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['user_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Browser:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['browser'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Device Type:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['device_type'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><?php esc_html_e('Operating System:', 'smarty-very-simple-license-manager'); ?></td>
+                                                            <td><?php echo esc_html($url_data['os'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+											</td>
+										</tr>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php else: ?>
+						<p style="text-align: center;"><?php esc_html_e('No usage URLs available.', 'smarty-very-simple-license-manager'); ?></p>
+					<?php endif; ?>
+                <?php endif; ?>
+            </div>
 
         </div> <!-- End three-column layout -->
 
@@ -713,8 +790,10 @@ if (!function_exists('smarty_vslm_fill_license_columns')) {
             if ($multi_domain === '1') {
                 $usage_urls = get_post_meta($post_id, '_usage_urls', true) ?: array();
                 if (!empty($usage_urls)) {
-                    foreach ($usage_urls as $url) {
-                        echo '<div>' . esc_url($url) . '</div>';
+                    foreach ($usage_urls as $url_data) {
+                        if (is_array($url_data) && isset($url_data['site_url'])) {
+                            echo '<div>' . esc_html($url_data['site_url']) . '</div>';
+                        }
                     }
                 } else {
                     echo '—';
@@ -1044,17 +1123,43 @@ if (!function_exists('smarty_vslm_check_license_status')) {
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
             if ($multi_domain === '1') {
-                // Multi-domain usage
-                $usage_urls = get_post_meta($license_id, '_usage_urls', true) ?: array();
-                if (!in_array($site_url, $usage_urls, true)) {
-                    // Add the new site URL
-                    $usage_urls[] = esc_url_raw($site_url);
-                    update_post_meta($license_id, '_usage_urls', $usage_urls);
+            // Multi-domain handling
+            $usage_urls = get_post_meta($license_id, '_usage_urls', true) ?: [];
+
+            // Find existing URL in the list
+            $existing_url_index = null;
+            foreach ($usage_urls as $index => $data) {
+                if ($data['site_url'] === $site_url) {
+                    $existing_url_index = $index;
+                    break;
                 }
+            }
+
+            $url_data = [
+                'site_url' => $site_url,
+                'wp_version' => $wp_version,
+                'plugin_version' => $plugin_version,
+                'web_server' => $web_server,
+                'server_ip' => $server_ip,
+                'php_version' => $php_version,
+                'user_ip' => $user_ip,
+                'browser' => $browser,
+                'device_type' => $device_type,
+                'os' => $os,
+            ];
+
+            if (is_null($existing_url_index)) {
+                $usage_urls[] = $url_data;
             } else {
+                $usage_urls[$existing_url_index] = $url_data;
+            }
+
+            update_post_meta($license_id, '_usage_urls', $usage_urls);
+        } else {
                 // Single-domain usage
                 $existing_usage_url = get_post_meta($license_id, '_usage_url', true);
-                if (empty($existing_usage_url) || $existing_usage_url === esc_url_raw($site_url)) {
+                
+				if (empty($existing_usage_url) || $existing_usage_url === esc_url_raw($site_url)) {
                     // Update the usage URL
                     update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
                 } else {

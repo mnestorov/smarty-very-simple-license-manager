@@ -71,6 +71,7 @@
     border-left: none;
 }
 
+/* Table styling */
 .smarty-vslm-license-table {
     width: 100%;
     max-width: 100%;
@@ -78,8 +79,8 @@
 }
 
 .smarty-vslm-license-table td {
-    padding: 8px;
-    vertical-align: top;
+    padding: 10px 15px;
+    vertical-align: middle;
 }
 
 .smarty-vslm-license-table label {
@@ -111,6 +112,28 @@
 
 .smarty-vslm-license-table .usage-urls br:last-of-type {
    display: none;
+}
+
+/* Inner (nested) table styling */
+.smarty-vslm-nested-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+    
+.smarty-vslm-nested-table td {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+}
+    
+.smarty-vslm-nested-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+    
+.smarty-vslm-nested-table tr:nth-child(odd) {
+    background-color: #fff;
 }
 
 .smarty-vslm-generate-key-button {
