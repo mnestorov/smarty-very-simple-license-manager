@@ -46,6 +46,7 @@ if (!function_exists('smarty_vslm_enqueue_admin_scripts')) {
                 // Enqueue CSS and JS files for license post type
                 wp_enqueue_style('vslm-admin-css', plugin_dir_url(__FILE__) . 'css/smarty-vslm-admin.css');
                 wp_enqueue_script('vslm-admin-js', plugin_dir_url(__FILE__) . 'js/smarty-vslm-admin.js', array(), null, true);
+                wp_enqueue_script('vslm-json-js', plugin_dir_url(__FILE__) . 'js/smarty-vslm-json.js', array(), null, true);
             }
         }
     }
@@ -238,48 +239,153 @@ if (!function_exists('smarty_vslm_license_meta_box_title')) {
 
         // Set class based on status to handle the pulse effect only for 'active'
         $status_class = 'smarty-vslm-status-circle-container--' . $status;
-
+		
         // Return the title with a container for the pulsing effect
-        return 'License Details <span class="smarty-vslm-status-circle-container ' . esc_attr($status_class) . '"><span class="smarty-vslm-status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
+        return  'LICENSE ' . '#' . $post->ID . '<span class="smarty-vslm-status-circle-container ' . esc_attr($status_class) . '"><span class="smarty-vslm-status-circle" style="background-color:' . esc_attr($dot_color) . ';"></span></span>';
     }
 }
 
-if (!function_exists('check_client_plugin_status_for_urls')) {
-	/**
-	 * Check the client plugin status via REST API.
-	 *
-	 * @return string 'active' if the client plugin is active, 'inactive' otherwise.
-	 */
-	function check_client_plugin_status_for_urls($usage_urls, $plugin_name) {
-		$statuses = [];
+if (!function_exists('smarty_vslm_add_json_response_meta_box')) {
+    /**
+     * Add a meta box for displaying the JSON response from the plugin status endpoint.
+     */
+    function smarty_vslm_add_json_response_meta_box() {
+        add_meta_box(
+            'smarty_vslm_json_response',
+            __('JSON Response', 'smarty-very-simple-license-manager'),
+            'smarty_vslm_json_response_meta_box_callback',
+            'vslm-licenses',
+            'normal',
+            'default'
+        );
+    }
+    add_action('add_meta_boxes', 'smarty_vslm_add_json_response_meta_box');
+}
 
-		foreach ($usage_urls as $url) {
-			$client_site_url = trailingslashit($url) . 'wp-json/' . $plugin_name . '/v1/plugin-status';
-			$response = wp_remote_get($client_site_url);
+if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
+    /**
+     * Callback for the Plugin Status JSON Response meta box.
+     *
+     * @param WP_Post $post The current post object.
+     */
+    function smarty_vslm_json_response_meta_box_callback($post) {
+        // Retrieve meta data
+        $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
+        $usage_url = get_post_meta($post->ID, '_usage_url', true);
+        $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: [];
+        $plugin_name = get_post_meta($post->ID, '_plugin_name', true);
 
-			// Default status is 'inactive'
-			$status = 'inactive';
+        // Validate plugin name
+        if (empty($plugin_name)) {
+            echo '<p style="color: #dc3545;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
+            return;
+        }
 
-			if (!is_wp_error($response)) {
-				$body = wp_remote_retrieve_body($response);
-				$data = json_decode($body, true);
+        // Handle single-domain usage
+        if ($multi_domain !== '1') {
+            if (empty($usage_url)) {
+                echo '<p style="color: #dc3545;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                return;
+            }
 
-				// Determine status based on response
-				if (isset($data['code']) && $data['code'] === 'rest_no_route') {
-					$status = 'inactive';
-				} elseif (isset($data['status']) && $data['status'] === 'active') {
-					$status = 'active';
-				}
-			}
+            $endpoint = trailingslashit(esc_url($usage_url)) . 'wp-json/' . sanitize_title($plugin_name) . '/v1/plugin-status';
+            ?>
+            <p>
+                <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
+                <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
+            </p>
+            <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
+                <p style="color: #28a745;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+            </div>
+            <?php
+        } else {
+            // Handle multi-domain usage
+            if (empty($usage_urls)) {
+                echo '<p style="color: #dc3545;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                return;
+            }
 
-			$statuses[] = [
-				'url'    => $url,
-				'status' => $status
-			];
-		}
+            foreach ($usage_urls as $url_data) {
+                if (isset($url_data['site_url']) && !empty($url_data['site_url'])) {
+                    $endpoint = trailingslashit(esc_url($url_data['site_url'])) . 'wp-json/' . sanitize_title($plugin_name) . '/v1/plugin-status';
+                    ?>
+                    <p>
+                        <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
+                        <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
+                    </p>
+                    <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
+                        <p style="color: #28a745;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+                    </div>
+                    <?php
+                } else {
+                    echo '<p style="color: #dc3545;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
+                }
+            }
+        }
+    }
+}
 
-		return $statuses;
-	}
+if (!function_exists('smarty_vslm_check_client_plugin_status')) {
+    /**
+     * Check the plugin status for client sites associated with a license.
+     *
+     * @param string $license_key The license key to validate.
+     * @param array $usage_urls List of client site URLs to check.
+     * @return array List of plugin statuses for each URL.
+     */
+    function smarty_vslm_check_client_plugin_status($license_key, $usage_urls) {
+        $statuses = [];
+
+        foreach ($usage_urls as $url) {
+            $client_status_endpoint = trailingslashit($url) . 'wp-json/smarty-google-feed-generator/v1/plugin-status';
+
+            // Perform the request
+            $response = wp_remote_get($client_status_endpoint, [
+                'timeout' => 10, // Set a timeout
+                'headers' => [
+                    'Authorization' => 'Basic ' . base64_encode($license_key),
+                ],
+            ]);
+
+            // Handle errors
+            if (is_wp_error($response)) {
+                $statuses[] = [
+                    'url'     => $url,
+                    'status'  => 'error',
+                    'message' => $response->get_error_message(),
+                ];
+                continue;
+            }
+
+            // Parse response body
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+
+            // Check for valid data and statuses
+            if (isset($data['status']) && $data['status'] === 'active') {
+                $statuses[] = [
+                    'url'       => $url,
+                    'status'    => 'active',
+                    'version'   => $data['version'],
+                    'timestamp' => $data['timestamp'],
+                ];
+            } elseif (isset($data['code']) && $data['code'] === 'rest_no_route') {
+                $statuses[] = [
+                    'url'     => $url,
+                    'status'  => 'inactive',
+                    'message' => 'REST route not found.',
+                ];
+            } else {
+                $statuses[] = [
+                    'url'     => $url,
+                    'status'  => 'inactive',
+                    'message' => $data['message'] ?? 'Unknown error.',
+                ];
+            }
+        }
+
+        return $statuses;
+    }
 }
 
 if (!function_exists('smarty_vslm_license_details_callback')) {
@@ -301,6 +407,9 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: array();
         $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
         $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
+		
+		// Check plugin status for all usage URLs
+		$statuses = smarty_vslm_check_client_plugin_status($license_key, array_column($usage_urls, 'site_url'));
 
         // Retrieve plugin information
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
@@ -322,76 +431,80 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
             <!-- Left Column -->
             <div class="smarty-vslm-left-col">
                 <table class="smarty-vslm-license-table">
-                    <!-- License Key with Generate Button -->
-                    <tr>
-                        <td><label><?php esc_html(_e('License Key', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td>
-                            <div class="smarty-vslm-field-wrapper">
-                                <input type="text" name="license_key" id="smarty_vslm_license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
-                                <button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php esc_html(_e('Generate Key', 'smarty-very-simple-license-manager')); ?></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Status -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Status', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td>
-                            <select name="status">
-                                <?php foreach (array('active', 'inactive', 'expired') as $option) : ?>
-                                    <?php $selected = $status === $option ? 'selected' : ''; ?>
-                                    <option value="<?php echo $option; ?>" <?php echo $selected; ?>><?php echo ucfirst($option); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label><?php esc_html(_e('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td>
-                            <label class="smarty-vslm-checkbox">
-                                <input type="checkbox" name="multi_domain" value="1" <?php checked($multi_domain, '1'); ?> />
-                                <span class="checkmark"></span>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>&nbsp;</td>
-                    </tr>
-                    <!-- Product -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Product', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td>
-                            <?php
-                            wp_dropdown_categories(array(
-                                'taxonomy'          => 'product',
-                                'name'              => 'product',
-                                'show_option_none'  => esc_html(__('-- Select a Product --', 'smarty-very-simple-license-manager')),
-                                'selected'          => $product_terms ? $product_terms[0]->term_id : '',
-                                'required'          => true,
-                                'hide_empty'        => false,
-                            ));
-                            ?>
-                        </td>
-                    </tr>
-                    <!-- Client Name -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Client Name', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="text" name="client_name" value="<?php echo esc_attr($client_name); ?>" required/></td>
-                    </tr>
-                    <!-- Client Email -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Client Email', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="email" name="client_email" value="<?php echo esc_attr($client_email); ?>"/></td>
-                    </tr>
-                    <!-- Purchase Date -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Purchase Date', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="date" name="purchase_date" value="<?php echo esc_attr($purchase_date); ?>"/></td>
-                    </tr>
-                    <!-- Expiration Date -->
-                    <tr>
-                        <td><label><?php esc_html(_e('Expiration Date', 'smarty-very-simple-license-manager')); ?></label></td>
-                        <td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
-                    </tr>
+					<thead>
+                    	<tr>
+                        	<th colspan="2"><?php esc_html_e('License & Client Details', 'smarty-very-simple-license-manager'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+						<tr>
+							<td>
+								<table class="smarty-vslm-nested-table">
+									<tr>
+										<td><label><?php esc_html(_e('License Key', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td>
+											<div class="smarty-vslm-field-wrapper">
+												<input type="text" name="license_key" id="smarty_vslm_license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
+												<button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php esc_html(_e('Generate Key', 'smarty-very-simple-license-manager')); ?></button>
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Status', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td>
+											<select name="status">
+												<?php foreach (array('active', 'inactive', 'expired') as $option) : ?>
+													<?php $selected = $status === $option ? 'selected' : ''; ?>
+													<option value="<?php echo $option; ?>" <?php echo $selected; ?>><?php echo ucfirst($option); ?></option>
+												<?php endforeach; ?>
+											</select>
+										</td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Allow Multi-Domain Usage', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td>
+											<label class="smarty-vslm-checkbox">
+												<input type="checkbox" name="multi_domain" value="1" <?php checked($multi_domain, '1'); ?> />
+												<span class="checkmark"></span>
+											</label>
+										</td>
+									</tr>
+									<!-- Product -->
+									<tr>
+										<td><label><?php esc_html(_e('Product', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td>
+											<?php
+											wp_dropdown_categories(array(
+												'taxonomy'          => 'product',
+												'name'              => 'product',
+												'show_option_none'  => esc_html(__('-- Select a Product --', 'smarty-very-simple-license-manager')),
+												'selected'          => $product_terms ? $product_terms[0]->term_id : '',
+												'required'          => true,
+												'hide_empty'        => false,
+											));
+											?>
+										</td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Client Name', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="text" name="client_name" value="<?php echo esc_attr($client_name); ?>" required/></td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Client Email', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="email" name="client_email" value="<?php echo esc_attr($client_email); ?>"/></td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Purchase Date', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="date" name="purchase_date" value="<?php echo esc_attr($purchase_date); ?>"/></td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Expiration Date', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</tbody>
                 </table>
             </div> <!-- End left column -->
 			
@@ -401,15 +514,18 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                     <table class="smarty-vslm-license-table">
                         <thead>
                             <tr>
-                                <th><?php esc_html_e('URL', 'smarty-very-simple-license-manager'); ?></th>
-                                <th><?php esc_html_e('Details', 'smarty-very-simple-license-manager'); ?></th>
+                                <th><?php esc_html_e('URL Usage & Details', 'smarty-very-simple-license-manager'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
 							<tr>
-                                <td><?php echo esc_html($usage_url ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
                                 <td>
                                     <table class="smarty-vslm-nested-table">
+										<thead>
+											<tr>
+												<th colspan="2" style="text-align: center;"><?php echo esc_html($usage_url ?? __('N/A', 'smarty-very-simple-license-manager')); ?></th>
+											</tr>
+										</thead>
                                         <tbody>
                                             <tr>
                                                 <td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
@@ -462,17 +578,20 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
 						<table class="smarty-vslm-license-table">
 							<thead>
 								<tr>
-									<th><?php esc_html_e('URL(s)', 'smarty-very-simple-license-manager'); ?></th>
-									<th><?php esc_html_e('Details', 'smarty-very-simple-license-manager'); ?></th>
+									<th><?php esc_html_e('URL(s) Usage & Details', 'smarty-very-simple-license-manager'); ?></th>
 								</tr>
 							</thead>
 							<tbody>
 								<?php foreach ($usage_urls as $url_data): ?>
 									<?php if (is_array($url_data) && isset($url_data['site_url'])): ?>
 										<tr>
-											<td><?php echo esc_html($url_data['site_url'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
 											<td>
 												<table class="smarty-vslm-nested-table">
+													<thead>
+														<tr>
+															<th colspan="2" style="text-align: center;"><?php echo esc_html($url_data['site_url'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></th>
+														</tr>
+													</thead>
                                                     <tbody>
 														<tr>
 															<td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
@@ -1136,51 +1255,45 @@ if (!function_exists('smarty_vslm_check_license_status')) {
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
             if ($multi_domain === '1') {
-            // Multi-domain handling
-            $usage_urls = get_post_meta($license_id, '_usage_urls', true) ?: [];
+				// Multi-domain handling
+				$usage_urls = get_post_meta($license_id, '_usage_urls', true) ?: [];
 
-            // Find existing URL in the list
-            $existing_url_index = null;
-            foreach ($usage_urls as $index => $data) {
-                if ($data['site_url'] === $site_url) {
-                    $existing_url_index = $index;
-                    break;
+                // Check if the URL already exists
+                $existing_key = array_search($site_url, array_column($usage_urls, 'site_url'));
+
+				$url_data = [
+					'site_url'       => $site_url,
+					'wp_version'     => $wp_version,
+					'plugin_version' => $plugin_version,
+					'web_server'     => $web_server,
+					'server_ip'      => $server_ip,
+					'php_version'    => $php_version,
+					'user_ip'        => $user_ip,
+					'browser'        => $browser,
+					'device_type'    => $device_type,
+					'os'             => $os,
+				];
+
+				if ($existing_key !== false) {
+                    // Update existing entry
+                    $usage_urls[$existing_key] = $url_data;
+                } else {
+                    // Add new entry
+                    $usage_urls[] = $url_data;
                 }
-            }
 
-            $url_data = [
-                'site_url' => $site_url,
-                'wp_version' => $wp_version,
-                'plugin_version' => $plugin_version,
-                'web_server' => $web_server,
-                'server_ip' => $server_ip,
-                'php_version' => $php_version,
-                'user_ip' => $user_ip,
-                'browser' => $browser,
-                'device_type' => $device_type,
-                'os' => $os,
-            ];
-
-            if (is_null($existing_url_index)) {
-                $usage_urls[] = $url_data;
-            } else {
-                $usage_urls[$existing_url_index] = $url_data;
-            }
-
-            update_post_meta($license_id, '_usage_urls', $usage_urls);
-        } else {
+				update_post_meta($license_id, '_usage_urls', $usage_urls);
+			} else {
                 // Single-domain usage
                 $existing_usage_url = get_post_meta($license_id, '_usage_url', true);
                 
-				if (empty($existing_usage_url) || $existing_usage_url === esc_url_raw($site_url)) {
-                    // Update the usage URL
+				if (empty($existing_usage_url) || $existing_usage_url === $site_url) {
                     update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
                 } else {
-                    // License is already activated on a different domain
-                    return new WP_REST_Response(array(
-                        'status' => 'error',
-                        'message' => 'License already activated on another domain.'
-                    ), 403);
+                    return new WP_REST_Response([
+                        'status'  => 'error',
+                        'message' => 'License already activated on another domain.',
+                    ], 403);
                 }
             }
         }
