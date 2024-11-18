@@ -318,8 +318,8 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $os = get_post_meta($post->ID, '_os', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager')); ?>
 
         <!-- Two-column layout styling -->
-        <div class="smarty-vslm-three-col">
-            <!-- Left column with main fields -->
+        <div class="smarty-vslm-two-col">
+            <!-- Left Column -->
             <div class="smarty-vslm-left-col">
                 <table class="smarty-vslm-license-table">
                     <!-- License Key with Generate Button -->
@@ -395,56 +395,65 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
                 </table>
             </div> <!-- End left column -->
 			
-            <!-- Center Column -->
-            <div class="smarty-vslm-center-col">
+            <!-- Right Column -->
+            <div class="smarty-vslm-right-col">
                 <?php if (!$multi_domain): ?>
                     <table class="smarty-vslm-license-table">
                         <thead>
                             <tr>
-                                <th><?php esc_html_e('Field', 'smarty-very-simple-license-manager'); ?></th>
-                                <th><?php esc_html_e('Value', 'smarty-very-simple-license-manager'); ?></th>
+                                <th><?php esc_html_e('URL', 'smarty-very-simple-license-manager'); ?></th>
+                                <th><?php esc_html_e('Details', 'smarty-very-simple-license-manager'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><?php esc_html_e('Plugin Version', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($plugin_version); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Usage URL', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($usage_url); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('WP Version', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($wp_version); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Web Server', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($web_server); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Server IP', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($server_ip); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('PHP Version', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($php_version); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('User IP', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($user_ip); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Browser', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($browser); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Device Type', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($device_type); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php esc_html_e('Operating System', 'smarty-very-simple-license-manager'); ?></td>
-                                <td><?php echo esc_html($os); ?></td>
+							<tr>
+                                <td><?php echo esc_html($usage_url ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                <td>
+                                    <table class="smarty-vslm-nested-table">
+                                        <tbody>
+                                            <tr>
+                                                <td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
+                                                <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="wp_version" value="<?php echo esc_html($wp_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Web Server', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="web_server" value="<?php echo esc_html($web_server ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Server IP', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="php_version" value="<?php echo esc_html($php_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('User IP', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="user_ip" value="<?php echo esc_html($user_ip ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Browser', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="browser" value="<?php echo esc_html($browser ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Device Type', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="device_type" value="<?php echo esc_html($device_type ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><label><?php esc_html_e('Operating System', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                <td><input type="text" name="os" value="<?php echo esc_html($os ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -453,7 +462,7 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
 						<table class="smarty-vslm-license-table">
 							<thead>
 								<tr>
-									<th><?php esc_html_e('URL', 'smarty-very-simple-license-manager'); ?></th>
+									<th><?php esc_html_e('URL(s)', 'smarty-very-simple-license-manager'); ?></th>
 									<th><?php esc_html_e('Details', 'smarty-very-simple-license-manager'); ?></th>
 								</tr>
 							</thead>
@@ -461,45 +470,49 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
 								<?php foreach ($usage_urls as $url_data): ?>
 									<?php if (is_array($url_data) && isset($url_data['site_url'])): ?>
 										<tr>
-											<td><?php echo esc_html($url_data['site_url']); ?></td>
+											<td><?php echo esc_html($url_data['site_url'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
 											<td>
 												<table class="smarty-vslm-nested-table">
                                                     <tbody>
+														<tr>
+															<td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
+															<td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
+														</tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Plugin Version:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['plugin_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Plugin Version:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="plugin_version" value="<?php echo esc_html($url_data['plugin_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('WP Version:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['wp_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('WP Version:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="wp_version" value="<?php echo esc_html($url_data['wp_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Web Server:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['web_server'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Web Server:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="web_server" value="<?php echo esc_html($url_data['web_server'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Server IP:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['server_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Server IP:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="server_ip" value="<?php echo esc_html($url_data['server_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('PHP Version:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['php_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('PHP Version:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="php_version" value="<?php echo esc_html($url_data['php_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('User IP:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['user_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('User IP:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="user_ip" value="<?php echo esc_html($url_data['user_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Browser:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['browser'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Browser:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="browser" value="<?php echo esc_html($url_data['browser'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Device Type:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['device_type'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Device Type:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="device_type" value="<?php echo esc_html($url_data['device_type'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><?php esc_html_e('Operating System:', 'smarty-very-simple-license-manager'); ?></td>
-                                                            <td><?php echo esc_html($url_data['os'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></td>
+                                                            <td><label><?php esc_html_e('Operating System:', 'smarty-very-simple-license-manager'); ?></label></td>
+                                                            <td><input type="text" name="os" value="<?php echo esc_html($url_data['os'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
