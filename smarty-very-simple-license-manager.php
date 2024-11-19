@@ -277,14 +277,14 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
 
         // Validate plugin name
         if (empty($plugin_name)) {
-            echo '<p style="color: #b32d2e;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
+            echo '<p class="error">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
             return;
         }
 
         // Handle single-domain usage
         if ($multi_domain !== '1') {
             if (empty($usage_url)) {
-                echo '<p style="color: #b32d2e;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p class="error">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -294,14 +294,14 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
                 <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
                 <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
             </p>
-            <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
-                <p style="color: #d9f2d9;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+            <div class="smarty-json-response smarty-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
+                <p class="success"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
             </div>
             <?php
         } else {
             // Handle multi-domain usage
             if (empty($usage_urls)) {
-                echo '<p style="color: #b32d2e;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p class="error">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -313,12 +313,12 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
                         <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
                         <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
                     </p>
-                    <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
-                        <p style="color: #d9f2d9;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+                    <div class="smarty-json-response smarty-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
+                        <p class="success"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
                     </div>
                     <?php
                 } else {
-                    echo '<p style="color: #b32d2e;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
+                    echo '<p class="error">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
                 }
             }
         }

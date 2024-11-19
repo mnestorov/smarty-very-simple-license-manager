@@ -25,8 +25,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+  	height: 20px;
     background-color: #e6e6e6;
     border-radius: 4px;
     transition: background-color 0.3s ease;
@@ -47,13 +47,17 @@
 }
 
 .smarty-vslm-checkbox .checkmark::after {
-    left: 8px;
-    top: 4px;
-    width: 6px;
-    height: 12px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
+    left: 7px;
+	top: 3px;
+	width: 4px;
+	height: 10px;
+	border: solid white;
+	border-top-width: medium;
+	border-right-width: medium;
+	border-bottom-width: medium;
+	border-left-width: medium;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
 }
 
 /* Two-column Layout */
@@ -340,4 +344,26 @@
 .inactive {
     color: #dc3545;
     font-weight: bold;
+}
+
+.smarty-json-response,
+.smarty-json-container pre {
+	background: #333333;
+	max-height: 150px;
+	border-radius: 5px;
+	padding: 5px; 
+	overflow: auto;
+}
+
+.smarty-json-container pre {
+    color: #d9f2d9;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.smarty-json-container .success {
+	color: #d9f2d9;
+}
+
+.smarty-json-container .error {
+    color: #f8d7da;
 }
