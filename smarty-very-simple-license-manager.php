@@ -277,14 +277,14 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
 
         // Validate plugin name
         if (empty($plugin_name)) {
-            echo '<p style="color: #dc3545;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
+            echo '<p style="color: #f8d7da;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
             return;
         }
 
         // Handle single-domain usage
         if ($multi_domain !== '1') {
             if (empty($usage_url)) {
-                echo '<p style="color: #dc3545;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p style="color: #f8d7da;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -295,13 +295,13 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
                 <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
             </p>
             <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
-                <p style="color: #28a745;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+                <p style="color: #d9f2d9;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
             </div>
             <?php
         } else {
             // Handle multi-domain usage
             if (empty($usage_urls)) {
-                echo '<p style="color: #dc3545;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p style="color: #f8d7da;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -314,77 +314,14 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
                         <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
                     </p>
                     <div class="smarty-json-response" data-json-endpoint="<?php echo esc_url($endpoint); ?>" style="background: #333; border: 1px solid #ccc; padding: 10px; overflow: auto; max-height: 300px;">
-                        <p style="color: #28a745;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
+                        <p style="color: #d9f2d9;"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
                     </div>
                     <?php
                 } else {
-                    echo '<p style="color: #dc3545;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
+                    echo '<p style="color: #f8d7da;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
                 }
             }
         }
-    }
-}
-
-if (!function_exists('smarty_vslm_check_client_plugin_status')) {
-    /**
-     * Check the plugin status for client sites associated with a license.
-     *
-     * @param string $license_key The license key to validate.
-     * @param array $usage_urls List of client site URLs to check.
-     * @return array List of plugin statuses for each URL.
-     */
-    function smarty_vslm_check_client_plugin_status($license_key, $usage_urls) {
-        $statuses = [];
-
-        foreach ($usage_urls as $url) {
-            $client_status_endpoint = trailingslashit($url) . 'wp-json/smarty-google-feed-generator/v1/plugin-status';
-
-            // Perform the request
-            $response = wp_remote_get($client_status_endpoint, [
-                'timeout' => 10, // Set a timeout
-                'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode($license_key),
-                ],
-            ]);
-
-            // Handle errors
-            if (is_wp_error($response)) {
-                $statuses[] = [
-                    'url'     => $url,
-                    'status'  => 'error',
-                    'message' => $response->get_error_message(),
-                ];
-                continue;
-            }
-
-            // Parse response body
-            $body = wp_remote_retrieve_body($response);
-            $data = json_decode($body, true);
-
-            // Check for valid data and statuses
-            if (isset($data['status']) && $data['status'] === 'active') {
-                $statuses[] = [
-                    'url'       => $url,
-                    'status'    => 'active',
-                    'version'   => $data['version'],
-                    'timestamp' => $data['timestamp'],
-                ];
-            } elseif (isset($data['code']) && $data['code'] === 'rest_no_route') {
-                $statuses[] = [
-                    'url'     => $url,
-                    'status'  => 'inactive',
-                    'message' => 'REST route not found.',
-                ];
-            } else {
-                $statuses[] = [
-                    'url'     => $url,
-                    'status'  => 'inactive',
-                    'message' => $data['message'] ?? 'Unknown error.',
-                ];
-            }
-        }
-
-        return $statuses;
     }
 }
 
@@ -408,9 +345,6 @@ if (!function_exists('smarty_vslm_license_details_callback')) {
         $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
         $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
 		
-		// Check plugin status for all usage URLs
-		$statuses = smarty_vslm_check_client_plugin_status($license_key, array_column($usage_urls, 'site_url'));
-
         // Retrieve plugin information
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));

@@ -11,17 +11,17 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(endpoint)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                    throw new Error(`HTTP Error ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Data received:', data);
-                container.innerHTML = `<pre style="color: #28a745;">${JSON.stringify(data, null, 2)}</pre>`;
+                container.innerHTML = `<pre style="color: #d9f2d9;">${JSON.stringify(data, null, 2)}</pre>`;
             })
             .catch(error => {
                 console.error('Error fetching JSON:', error);
-                container.innerHTML = `<p style="color: #dc3545;">Error fetching JSON<br /> ${error.message}</p>`;
+                container.innerHTML = `<p style="color: #f8d7da;">Error fetching JSON! ${error.message}</p>`;
             });
     });
 });
