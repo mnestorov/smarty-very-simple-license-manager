@@ -252,7 +252,7 @@ if (!function_exists('smarty_vslm_add_json_response_meta_box')) {
     function smarty_vslm_add_json_response_meta_box() {
         add_meta_box(
             'smarty_vslm_json_response',
-            __('JSON Response', 'smarty-very-simple-license-manager'),
+            __('Product Status (JSON)', 'smarty-very-simple-license-manager'),
             'smarty_vslm_json_response_meta_box_callback',
             'vslm-licenses',
             'normal',
@@ -274,7 +274,7 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
         $usage_url = get_post_meta($post->ID, '_usage_url', true);
         $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: [];
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true);
-		$json_response_info = __('This is the plugin status response from client site.', 'smarty-very-simple-license-manager');
+		$json_response_info = __('This is the product status JSON response from client site.', 'smarty-very-simple-license-manager');
 
         // Validate plugin name
         if (empty($plugin_name)) {
