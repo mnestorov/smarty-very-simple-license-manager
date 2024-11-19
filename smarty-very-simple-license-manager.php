@@ -277,14 +277,14 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
 
         // Validate plugin name
         if (empty($plugin_name)) {
-            echo '<p style="color: #f8d7da;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
+            echo '<p style="color: #b32d2e;">' . __('Plugin Name is missing.', 'smarty-very-simple-license-manager') . '</p>';
             return;
         }
 
         // Handle single-domain usage
         if ($multi_domain !== '1') {
             if (empty($usage_url)) {
-                echo '<p style="color: #f8d7da;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p style="color: #b32d2e;">' . __('Usage URL is missing for single-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -301,7 +301,7 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
         } else {
             // Handle multi-domain usage
             if (empty($usage_urls)) {
-                echo '<p style="color: #f8d7da;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
+                echo '<p style="color: #b32d2e;">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
             }
 
@@ -318,7 +318,7 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
                     </div>
                     <?php
                 } else {
-                    echo '<p style="color: #f8d7da;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
+                    echo '<p style="color: #b32d2e;">' . __('Invalid or missing URL in multi-domain configuration.', 'smarty-very-simple-license-manager') . '</p>';
                 }
             }
         }
@@ -1181,8 +1181,11 @@ if (!function_exists('smarty_vslm_check_license_status')) {
         ));
 
         if (empty($license_posts)) {
-            return new WP_REST_Response(array('status' => 'not found'), 404);
-        }
+			return new WP_REST_Response([
+				'status' => 'rest_no_route',
+				'message' => 'The requested route does not exist.',
+			], 404);
+		}
 
         $license_id = $license_posts[0]->ID;
         $multi_domain = get_post_meta($license_id, '_multi_domain', true);
@@ -1308,7 +1311,11 @@ if (!function_exists('smarty_vslm_check_license_status')) {
             $response_data['usage_url'] = get_post_meta($license_id, '_usage_url', true);
         }
 
-        return new WP_REST_Response($response_data, 200);
+        return new WP_REST_Response([
+			'status' => $license_status ? $license_status : 'inactive',
+			'expiration_date' => $expiration_date,
+			'message' => 'License status retrieved successfully.',
+		], 200);
     }
 }
 

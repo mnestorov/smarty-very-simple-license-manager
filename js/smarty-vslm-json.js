@@ -11,17 +11,26 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(endpoint)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP Error ${response.status}`);
+                    if (response.status === 404) {
+                        return { status: 'rest_no_route', message: 'REST route not found.' };
+                    }
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Data received:', data);
-                container.innerHTML = `<pre style="color: #d9f2d9;">${JSON.stringify(data, null, 2)}</pre>`;
+                const formattedJson = JSON.stringify(data, null, 2);
+                container.innerHTML = `<pre style="color: #d9f2d9; background: #333; padding: 10px; border-radius: 5px; overflow: auto;">${formattedJson}</pre>`;
             })
             .catch(error => {
                 console.error('Error fetching JSON:', error);
-                container.innerHTML = `<p style="color: #f8d7da;">Error fetching JSON! ${error.message}</p>`;
+                const errorJson = {
+                    status: 'error',
+                    message: error.message || 'Unknown error occurred.',
+                };
+                const formattedErrorJson = JSON.stringify(errorJson, null, 2);
+                container.innerHTML = `<pre style="color: #f8d7da; background: #333; padding: 10px; border-radius: 5px; overflow: auto;">${formattedErrorJson}</pre>`;
             });
     });
 });
