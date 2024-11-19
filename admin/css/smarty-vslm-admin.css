@@ -1,0 +1,373 @@
+/**
+ * All of the CSS for plugin admin functionality should be included in this file.
+ */
+
+.smarty-vslm-status-circle {
+    width: 15px; 
+    height: 15px;
+    border-radius: 50%; 
+    margin-left: 8px;
+}
+
+/* Checkbox Styling */
+.smarty-vslm-checkbox {
+    display: inline-block;
+    position: relative;
+    width: 24px;
+    height: 24px;
+}
+
+.smarty-vslm-checkbox input[type="checkbox"] {
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    cursor: pointer;
+}
+
+.smarty-vslm-checkbox .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+  	height: 20px;
+    background-color: #e6e6e6;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.smarty-vslm-checkbox input[type="checkbox"]:checked ~ .checkmark {
+    background-color: #28a745; /* Change color when checked */
+}
+
+.smarty-vslm-checkbox .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.smarty-vslm-checkbox input[type="checkbox"]:checked ~ .checkmark::after {
+    display: block;
+}
+
+.smarty-vslm-checkbox .checkmark::after {
+    left: 7px;
+	top: 3px;
+	width: 4px;
+	height: 10px;
+	border: solid white;
+	border-top-width: medium;
+	border-right-width: medium;
+	border-bottom-width: medium;
+	border-left-width: medium;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+
+/* Two-column Layout */
+.smarty-vslm-two-col {
+    display: flex;
+    gap: 10px;
+}
+
+.smarty-vslm-left-col, .smarty-vslm-right-col {
+    flex: 1;
+    border-left: 1px solid #ddd;
+}
+
+.smarty-vslm-left-col {
+    border-left: none;
+}
+
+/* Table styling */
+.smarty-vslm-license-table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+}
+
+.smarty-vslm-license-table td {
+    padding: 10px 15px;
+    vertical-align: middle;
+}
+
+.smarty-vslm-license-table label {
+    font-weight: bold;
+    display: inline-block;
+    text-align: right;
+    vertical-align: middle;
+    vertical-align: -moz-middle-with-baseline;
+    width: 100%;
+}
+
+.smarty-vslm-license-table .smarty-vslm-field-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.smarty-vslm-license-table input,
+.smarty-vslm-license-table select {
+    width: 100%;
+}
+
+.smarty-vslm-license-table input[type="checkbox"] {
+    width: auto;
+}
+
+.smarty-vslm-license-table .usage-urls br:first-of-type {
+    margin-bottom: 10px;
+ }
+
+.smarty-vslm-license-table .usage-urls br:last-of-type {
+   display: none;
+}
+
+/* Inner (nested) table styling */
+.smarty-vslm-nested-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+    
+.smarty-vslm-nested-table td {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+}
+    
+.smarty-vslm-nested-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+    
+.smarty-vslm-nested-table tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.smarty-vslm-generate-key-button {
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .smarty-vslm-license-table td {
+        display: block;
+        width: 100%;
+    }
+    .smarty-vslm-generate-key-button {
+        margin-top: 5px;
+        margin-left: 0;
+    }
+}
+
+.smarty-vslm-license-key-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.smarty-vslm-masked-key {
+    border: 1px solid #ededf0;
+    border-radius: 3px;
+    padding: 2px 4px;
+    background-color: #fefefe;
+    width: 160px;
+}
+
+.smarty-vslm-key-toggle-links a {
+    color: #2271b1;
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 5px;
+}
+
+.smarty-vslm-key-toggle-links a:hover {
+    color: #135e96;
+    text-decoration: none;
+}
+
+/* License Status Styling */
+.smarty-vslm-status-badge.active {
+    background-color: #d9f2d9; /* Light green background */
+    color: #28a745; /* Darker green text */
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.smarty-vslm-status-badge.inactive {
+    background-color: #f8d7da; /* Light red background */
+    color: #dc3545; /* Darker red text */
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.smarty-vslm-status-badge.expired {
+    background-color: #b3cbdd;
+    color: #2e5877;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Outer container to position the circles */
+.smarty-vslm-status-circle-container {
+    position: relative;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+}
+
+/* Main status circle */
+.smarty-vslm-status-circle {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+/* Active status with pulsing effect */
+.smarty-vslm-status-circle-container--active .smarty-vslm-status-circle {
+    background-color: #28a745; /* Active color */
+}
+.smarty-vslm-status-circle-container--active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background-color: rgba(40, 167, 69, 0.9); /* Slightly lighter green for pulse */
+    z-index: 1;
+    animation: pulse-active 1.9s infinite ease-out;
+}
+
+/* Inactive status with pulsing effect */
+.smarty-vslm-status-circle-container--inactive .smarty-vslm-status-circle {
+    background-color: #dc3545; /* Inactive color */
+}
+
+.smarty-vslm-status-circle-container--inactive::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background-color: rgba(220, 53, 69, 0.9); /* Slightly lighter red for pulse */
+    z-index: 1;
+    animation: pulse-inactive 1.9s infinite ease-out;
+}
+
+/* Expired status with pulsing effect */
+.smarty-vslm-status-circle-container--expired .smarty-vslm-status-circle {
+    background-color: #427eab; /* Expired color */
+}
+
+.smarty-vslm-status-circle-container--expired::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background-color: rgba(66, 126, 171, 0.9); /* Slightly lighter blue for pulse */
+    z-index: 1;
+    animation: pulse-expired 1.9s infinite ease-out;
+}
+
+/* Keyframes for pulsing effects */
+@keyframes pulse-active {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.8);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse-inactive {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse-expired {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.6);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(2.1);
+        opacity: 0;
+    }
+}
+
+/* Styling for the Copy link */
+.smarty-vslm-copy-key-link {
+    margin-left: 5px;
+    cursor: pointer;
+    color: #0073aa;
+}
+
+.smarty-vslm-copy-key-link:hover {
+    color: #005177;
+}
+
+/* Helpers */
+.active {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.inactive {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.smarty-json-response,
+.smarty-json-container pre {
+	background: #333333;
+	max-height: 150px;
+	border-radius: 5px;
+	padding: 5px; 
+	overflow: auto;
+}
+
+.smarty-json-container pre {
+    color: #d9f2d9;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.smarty-json-container .success {
+	color: #d9f2d9;
+}
+
+.smarty-json-container .error {
+    color: #f8d7da;
+}
