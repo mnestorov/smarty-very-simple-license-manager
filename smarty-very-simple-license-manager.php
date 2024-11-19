@@ -274,6 +274,7 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
         $usage_url = get_post_meta($post->ID, '_usage_url', true);
         $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: [];
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true);
+		$json_response_info = __('This is the plugin status response from client site.', 'smarty-very-simple-license-manager');
 
         // Validate plugin name
         if (empty($plugin_name)) {
@@ -290,6 +291,8 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
 
             $endpoint = trailingslashit(esc_url($usage_url)) . 'wp-json/' . sanitize_title($plugin_name) . '/v1/plugin-status';
             ?>
+
+			<p><?php echo $json_response_info; ?></p>
             <p>
                 <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
                 <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
@@ -303,7 +306,9 @@ if (!function_exists('smarty_vslm_json_response_meta_box_callback')) {
             if (empty($usage_urls)) {
                 echo '<p class="error">' . __('No usage URLs available for multi-domain usage.', 'smarty-very-simple-license-manager') . '</p>';
                 return;
-            }
+            } ?>
+			
+			<p><?php echo $json_response_info; ?></p><?php
 
             foreach ($usage_urls as $url_data) {
                 if (isset($url_data['site_url']) && !empty($url_data['site_url'])) {
