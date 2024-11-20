@@ -43,10 +43,10 @@ class Smarty_Vslm_Public {
 		 * This function enqueues custom CSS for the WooCommerce checkout page.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Smarty_Form_Submissions_Loader as all of the hooks are defined
+		 * defined in Smarty_Vslm_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Smarty_Form_Submissions_Loader will then create the relationship
+		 * The Smarty_Vslm_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
@@ -64,10 +64,10 @@ class Smarty_Vslm_Public {
 		 * This function enqueues custom JavaScript for the WooCommerce checkout page.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Smarty_Form_Submissions_Loader as all of the hooks are defined
+		 * defined in Smarty_Vslm_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Smarty_Form_Submissions_Loader will then create the relationship
+		 * The Smarty_Vslm_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
