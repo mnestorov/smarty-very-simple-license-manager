@@ -130,7 +130,6 @@ class Smarty_Vslm_Admin {
             'smarty_vslm_dashboard_widget_render'   // Callback function to display content
         );
     }
-    add_action('wp_dashboard_setup', 'smarty_vslm_add_dashboard_widget');
 
     /**
      * Render the content of the custom dashboard widget with a centered icon and link.
@@ -200,7 +199,6 @@ class Smarty_Vslm_Admin {
             'show_in_rest'  => true,
         ));
     }
-    add_action('init', 'vslm_register_license_post_type');
 
     /**
      * Customize the update messages for the License custom post type.
@@ -231,7 +229,6 @@ class Smarty_Vslm_Admin {
 
         return $messages;
     }
-    add_filter('post_updated_messages', 'vslm_license_post_updated_messages');
 
     /**
      * Add custom meta boxes for license details in the license edit screen, with status dot after the title.
@@ -242,13 +239,12 @@ class Smarty_Vslm_Admin {
         add_meta_box(
             'license_details',
             vslm_license_meta_box_title(),          // Set title with dynamic status dot
-            'smarty_vslm_license_details_callback',
+            array($this, 'vslm_license_details_cb'),
             'vslm-licenses',
             'normal',
             'default'
         );
     }
-    add_action('add_meta_boxes', 'vslm_add_license_meta_boxes');
 
     /**
      * Generate the title for the license meta box with a colored status dot.
@@ -281,13 +277,12 @@ class Smarty_Vslm_Admin {
         add_meta_box(
             'smarty_vslm_json_response',
             __('Product Status (JSON)', 'smarty-very-simple-license-manager'),
-            'smarty_vslm_json_response_meta_box_callback',
+            array($this, 'vslm_json_response_meta_box_cb'),
             'vslm-licenses',
             'normal',
             'default'
         );
     }
-    add_action('add_meta_boxes', 'vslm_add_json_response_meta_box');
 
     /**
      * Callback for the Plugin Status JSON Response meta box.
@@ -295,7 +290,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @param WP_Post $post The current post object.
      */
-    public function smarty_vslm_json_response_meta_box_callback($post) {
+    public function vslm_json_response_meta_box_cb($post) {
         // Retrieve meta data
         $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
         $usage_url = get_post_meta($post->ID, '_usage_url', true);
@@ -362,7 +357,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @param WP_Post $post The current post object.
      */
-    public function smarty_vslm_license_details_callback($post) {
+    public function vslm_license_details_cb($post) {
         // Retrieve existing values from the post meta, if available
         $product_terms = get_the_terms($post->ID, 'product'); // Get assigned product terms
         $license_key = get_post_meta($post->ID, '_license_key', true);
@@ -621,7 +616,7 @@ class Smarty_Vslm_Admin {
      * @param int $post_id The ID of the current post being saved.
      * @param WP_Post $post The current post object.
      */
-    public function smarty_vslm_save_license_meta($post_id, $post) {
+    public function vslm_save_license_meta($post_id, $post) {
         if ($post->post_type === 'vslm-licenses') {
             // Verify nonce for security
             if (!isset($_POST['smarty_vslm_license_nonce']) || !wp_verify_nonce($_POST['smarty_vslm_license_nonce'], 'smarty_vslm_save_license_meta')) {
@@ -666,7 +661,6 @@ class Smarty_Vslm_Admin {
             }
         }
     }
-    add_action('save_post', 'smarty_vslm_save_license_meta', 10, 2);
 
     /**
      * Set a numeric slug for licenses instead of a title-based slug.
@@ -676,7 +670,7 @@ class Smarty_Vslm_Admin {
      * @param array $postarr The array of unsanitized post data.
      * @return array Modified post data with a numeric slug.
      */
-    public function smarty_vslm_set_numeric_slug($data, $postarr) {
+    public function vslm_set_numeric_slug($data, $postarr) {
         if ($data['post_type'] === 'vslm-licenses' && $data['post_status'] === 'publish') {
             // Generate a unique numeric slug based on the post ID
             if (empty($postarr['ID'])) {
@@ -690,14 +684,13 @@ class Smarty_Vslm_Admin {
         }
         return $data;
     }
-    add_filter('wp_insert_post_data', 'smarty_vslm_set_numeric_slug', 10, 2);
 
     /**
      * Register the 'Products' taxonomy for licenses.
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_register_product_taxonomy() {
+    public function vslm_register_product_taxonomy() {
         register_taxonomy('product', 'vslm-licenses', array(
             'labels' => array(
                 'name'          => esc_html(__('Products', 'smarty-very-simple-license-manager')),
@@ -717,7 +710,6 @@ class Smarty_Vslm_Admin {
             'rewrite'       => array('slug' => 'product'),
         ));
     }
-    add_action('init', 'smarty_vslm_register_product_taxonomy');
 
     /**
      * Remove the "View Posts" link from the admin bar for the License post type.
@@ -725,7 +717,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
      */
-    public function smarty_vslm_remove_admin_bar_view_posts($wp_admin_bar) {
+    public function vslm_remove_admin_bar_view_posts($wp_admin_bar) {
         // Check if we're in the License custom post type or editing it
         global $post_type, $post;
 
@@ -738,7 +730,6 @@ class Smarty_Vslm_Admin {
             $wp_admin_bar->remove_menu('view'); // Extra attempt in case `remove_node` does not cover all cases
         }
     }
-    add_action('admin_bar_menu', 'smarty_vslm_remove_admin_bar_view_posts', 999);
 
     /**
      * Remove the "View" link from the row actions for licenses in the admin list.
@@ -748,14 +739,13 @@ class Smarty_Vslm_Admin {
      * @param WP_Post $post The current post object.
      * @return array Modified row actions without the "View" link.
      */
-    function smarty_vslm_remove_view_link($actions, $post) {
+    function vslm_remove_view_link($actions, $post) {
         // Check if the current post type is "license"
         if ($post->post_type === 'vslm-licenses') {
             unset($actions['view']); // Remove the "View" action
         }
         return $actions;
     }
-    add_filter('post_row_actions', 'smarty_vslm_remove_view_link', 10, 2);
 
     /**
      * Remove "Quick Edit" from the row actions in the licenses list.
@@ -765,13 +755,12 @@ class Smarty_Vslm_Admin {
      * @param WP_Post $post The current post object.
      * @return array Modified row actions without the "Quick Edit" option.
      */
-    function smarty_vslm_remove_quick_edit($actions, $post) {
+    function vslm_remove_quick_edit($actions, $post) {
         if ($post->post_type === 'vslm-licenses') {
             unset($actions['inline hide-if-no-js']); // Remove the "Quick Edit" action
         }
         return $actions;
     }
-    add_filter('post_row_actions', 'smarty_vslm_remove_quick_edit', 10, 2);
 
     /**
      * Add custom columns for License Key, Status, Expiration Date, and User Email in the licenses list table.
@@ -780,7 +769,7 @@ class Smarty_Vslm_Admin {
      * @param array $columns The current list of columns.
      * @return array Modified list of columns.
      */
-    public function smarty_vslm_add_license_columns($columns) {
+    public function vslm_add_license_columns($columns) {
         unset($columns['title']);
         // Define the new columns order, placing "Product" first
         $new_columns = array(
@@ -797,7 +786,6 @@ class Smarty_Vslm_Admin {
 
         return $new_columns;
     }
-    add_filter('manage_vslm-licenses_posts_columns', 'smarty_vslm_add_license_columns');
 
     /**
      * Populate the custom columns for License Key, Status, Expiration Date, and User Email.
@@ -806,7 +794,7 @@ class Smarty_Vslm_Admin {
      * @param string $column The name of the column.
      * @param int $post_id The ID of the current post.
      */
-    public function smarty_vslm_fill_license_columns($column, $post_id) {
+    public function vslm_fill_license_columns($column, $post_id) {
         if ($column === 'license_key') {
             $license_key = get_post_meta($post_id, '_license_key', true);
             $masked_key = substr($license_key, 0, 4) . '-XXXX-XXXX-XXXX';
@@ -896,7 +884,6 @@ class Smarty_Vslm_Admin {
             echo $product_version ? esc_html($product_version) : esc_html(__('Not recorded', 'smarty-very-simple-license-manager'));
         }
     }
-    add_action('manage_vslm-licenses_posts_custom_column', 'smarty_vslm_fill_license_columns', 10, 2);
 
     /**
      * Define sortable columns for License Key and Status.
@@ -905,44 +892,11 @@ class Smarty_Vslm_Admin {
      * @param array $columns The current list of sortable columns.
      * @return array Modified list of sortable columns.
      */
-    public function smarty_vslm_sortable_license_columns($columns) {
+    public function vslm_sortable_license_columns($columns) {
         $columns['license_key'] = 'license_key';
         $columns['license_status'] = 'license_status';
         return $columns;
     }
-    add_filter('manage_edit-vslm-licenses_sortable_columns', 'smarty_vslm_sortable_license_columns');
-
-    /**
-     * Make the Status column sortable in the admin.
-     *
-     * @since    1.0.1
-     * @param array $columns List of sortable columns.
-     * @return array Updated sortable columns.
-     */
-    public function smarty_vslm_license_sortable_columns($columns) {
-        $columns['license_status'] = 'license_status';
-        return $columns;
-    }
-    add_filter('manage_edit-license_sortable_columns', 'smarty_vslm_license_sortable_columns');
-
-    /**
-     * Sort the licenses by status in the admin.
-     *
-     * @since    1.0.1
-     * @param WP_Query $query The current WP_Query object.
-     */
-    public function smarty_vslm_license_orderby_status($query) {
-        if (!is_admin()) {
-            return;
-        }
-
-        $orderby = $query->get('orderby');
-        if ('license_status' === $orderby) {
-            $query->set('meta_key', '_status');
-            $query->set('orderby', 'meta_value');
-        }
-    }
-    add_action('pre_get_posts', 'smarty_vslm_license_orderby_status');
 
     /**
      * Modify the query to handle sorting by license key and status.
@@ -950,23 +904,26 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @param WP_Query $query The current WP_Query instance.
      */
-    public function smarty_vslm_orderby_license_columns($query) {
-        if (!is_admin()) return;
+    public function vslm_orderby_license_columns($query) {
+        if (!is_admin()) {
+            return;
+        }
+
         if ($query->get('orderby') === 'license_key') {
             $query->set('meta_key', '_license_key');
             $query->set('orderby', 'meta_value');
         }
+
         if ($query->get('orderby') === 'license_status') {
             $query->set('meta_key', '_status');
             $query->set('orderby', 'meta_value');
         }
     }
-    add_action('pre_get_posts', 'smarty_vslm_orderby_license_columns');
 
     /**
      * @since    1.0.1
      */
-    public function smarty_vslm_custom_admin_styles() {
+    public function vslm_custom_admin_styles() {
         global $post_type;
 
         if ('vslm-licenses' === $post_type) {
@@ -978,7 +935,6 @@ class Smarty_Vslm_Admin {
             </style>';
         }
     }
-    add_action('admin_head', 'smarty_vslm_custom_admin_styles');
 
 	/**
 	 * Adds an options page for the plugin in the WordPress admin menu.
@@ -1029,7 +985,7 @@ class Smarty_Vslm_Admin {
 	 *
 	 * @since    1.0.1
 	 */
-	public function vslm_settings_init() {
+	public function smarty_vslm_settings_init() {
 		register_setting('smarty_vslm_settings', 'smarty_vslm_ck_key');
         register_setting('smarty_vslm_settings', 'smarty_vslm_cs_key');
 
@@ -1037,14 +993,14 @@ class Smarty_Vslm_Admin {
         add_settings_section(
             'smarty_vslm_section_general',                          // ID of the section
             __('General', 'smarty-very-simple-license-manager'),    // Title of the section
-            'smarty_vslm_section_general_callback',                 // Callback function that fills the section with the desired content
+            array($this, 'smarty_vslm_section_general_cb'),         // Callback function that fills the section with the desired content
             'smarty_vslm_settings'                                  // Page on which to add the section
         );
 
         add_settings_field(
             'smarty_vslm_ck_key', 
             __('Consumer Key', 'smarty-very-simple-license-manager'),
-            'smarty_vslm_ck_key_callback', 
+            array($this, 'vslm_ck_key_cb'), 
             'smarty_vslm_settings', 
             'smarty_vslm_section_general'
         );
@@ -1052,7 +1008,7 @@ class Smarty_Vslm_Admin {
         add_settings_field(
             'smarty_vslm_cs_key', 
             __('Consumer Secret', 'smarty-very-simple-license-manager'),
-            'smarty_vslm_cs_key_callback', 
+            array($this, 'vslm_cs_key_cb'), 
             'smarty_vslm_settings', 
             'smarty_vslm_section_general'
         );
@@ -1063,7 +1019,7 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_section_general_callback() { ?>
+    public function smarty_vslm_section_general_cb() { ?>
         <p><?php echo esc_html(_e('General settings for the License Manager.', 'smarty-very-simple-license-manager')); ?></p>
         <hr><?php
     }
@@ -1073,7 +1029,7 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_ck_key_callback() {
+    public function vslm_ck_key_cb() {
         $ck_key = get_option('smarty_vslm_ck_key'); ?>
         <input type="text" id="smarty_vslm_ck_key" name="smarty_vslm_ck_key" value="<?php echo esc_attr($ck_key); ?>" readonly />
         <button type="button" id="smarty_vslm_generate_ck_key" class="button"><?php esc_html(_e('Generate', 'smarty-very-simple-license-manager')); ?></button>
@@ -1085,51 +1041,47 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_cs_key_callback() {
+    public function vslm_cs_key_cb() {
         $cs_key = get_option('smarty_vslm_cs_key'); ?>
         <input type="text" id="smarty_vslm_cs_key" name="smarty_vslm_cs_key" value="<?php echo esc_attr($cs_key); ?>" readonly />
         <button type="button" id="smarty_vslm_generate_cs_key" class="button"><?php esc_html(_e('Generate', 'smarty-very-simple-license-manager')); ?></button>
         <p class="description"><?php esc_html(_e('This Consumer Secret is used as a secret key for API requests. Click "Generate" to create a new one.', 'smarty-very-simple-license-manager')); ?></p><?php
     }
 
-    
     /**
      * AJAX handler to generate a CK key.
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_generate_ck_key() {
+    public function vslm_generate_ck_key() {
         $ck_key = 'ck_' . bin2hex(random_bytes(20)); // Generate a CK key
         update_option('smarty_vslm_ck_key', $ck_key);
         wp_send_json_success($ck_key);
     }
-    add_action('wp_ajax_generate_ck_key', 'smarty_vslm_generate_ck_key');
     
     /**
      * AJAX handler to generate a CS key.
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_generate_cs_key() {
+    public function vslm_generate_cs_key() {
         $cs_key = 'cs_' . bin2hex(random_bytes(20)); // Generate a CS key
         update_option('smarty_vslm_cs_key', $cs_key);
         wp_send_json_success($cs_key);
     }
-    add_action('wp_ajax_generate_cs_key', 'smarty_vslm_generate_cs_key');
     
     /**
      * Register REST API endpoint for license status check.
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_register_license_status_endpoint() {
+    public function vslm_register_license_status_endpoint() {
         register_rest_route('smarty-vslm/v1', '/check-license', array(
             'methods'             => 'GET',
-            'callback'            => 'smarty_vslm_check_license_status',
-            'permission_callback' => 'smarty_vslm_basic_auth_permission_check',
+            'callback'            => 'vslm_check_license_status',
+            'permission_callback' => 'vslm_basic_auth_permission_check',
         ));
     }
-    add_action('rest_api_init', 'smarty_vslm_register_license_status_endpoint');
 
     /**
      * Permission callback for Basic Auth.
@@ -1137,7 +1089,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @return bool True if authentication is successful, false otherwise.
      */
-    public function smarty_vslm_basic_auth_permission_check() {
+    public function vslm_basic_auth_permission_check() {
         $headers = getallheaders();
         if (isset($headers['Authorization'])) {
             $auth_header = $headers['Authorization'];
@@ -1166,7 +1118,7 @@ class Smarty_Vslm_Admin {
      * @param WP_REST_Request $request The REST request object.
      * @return WP_REST_Response The REST response with license status, expiration date, usage URL, and WordPress version.
      */
-    public function smarty_vslm_check_license_status(WP_REST_Request $request) {
+    public function vslm_check_license_status(WP_REST_Request $request) {
         $license_key = $request->get_param('license_key');
         $site_url = $request->get_param('site_url');
         $wp_version = $request->get_param('wp_version');
@@ -1335,19 +1287,18 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_schedule_cron_job() {
-        if (!wp_next_scheduled('smarty_vslm_license_check')) {
-            wp_schedule_event(time(), 'daily', 'smarty_vslm_license_check');
+    public function vslm_schedule_cron_job() {
+        if (!wp_next_scheduled('vslm_license_check')) {
+            wp_schedule_event(time(), 'daily', 'vslm_license_check');
         }
     }
-    add_action('wp', 'smarty_vslm_schedule_cron_job');
-
+    
     /**
      * Cron job function to mark expired licenses as expired.
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_check_expired_licenses() {
+    public function vslm_check_expired_licenses() {
         $licenses = get_posts(array('post_type' => 'vslm-licenses', 'posts_per_page' => -1));
         foreach ($licenses as $license) {
             $expiration_date = get_post_meta($license->ID, '_expiration_date', true);
@@ -1356,5 +1307,4 @@ class Smarty_Vslm_Admin {
             }
         }
     }
-    add_action('smarty_vslm_license_check', 'smarty_vslm_check_expired_licenses');
 }

@@ -145,27 +145,33 @@ class Smarty_Vslm_Locator {
 
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
-		$this->loader->add_action('admin_menu', $plugin_admin, 'fs_add_settings_page');
-		$this->loader->add_action('admin_init', $plugin_admin, 'fs_settings_init');
-		$this->loader->add_action('admin_notices', $plugin_admin, 'fs_success_notice');
-		$this->loader->add_action('admin_notices', $plugin_admin, 'fs_admin_notice');
-		$this->loader->add_action('init', $plugin_admin, 'register_submission_type');
-		$this->loader->add_action('init', $plugin_admin, 'register_subject_taxonomy', 0);
-		$this->loader->add_action('admin_menu', $plugin_admin, 'remove_add_new_submenu');
-		$this->loader->add_action('rest_api_init', $plugin_admin, 'register_submission_routes');
-		$this->loader->add_action('add_meta_boxes', $plugin_admin, 'add_submission_meta_boxes');
-		$this->loader->add_action('save_post', $plugin_admin, 'save_submission_meta_box');
-		$this->loader->add_action('admin_init', $plugin_admin, 'auto_publish_submission_on_edit');
-		$this->loader->add_filter('post_row_actions', $plugin_admin, 'remove_quick_edit', 10, 2);
-		$this->loader->add_filter('manage_submission_posts_columns', $plugin_admin, 'modify_submission_columns');
-		$this->loader->add_action('manage_submission_posts_custom_column', $plugin_admin, 'custom_submission_column', 10, 2);
-		$this->loader->add_filter('manage_edit-submission_sortable_columns', $plugin_admin, 'make_submission_columns_sortable');
-		$this->loader->add_action('pre_get_posts', $plugin_admin, 'exclude_submissions_from_feed');
-		$this->loader->add_action('wp_ajax_delete_comment', $plugin_admin, 'delete_comment_ajax');
+		$this->loader->add_action('wp_dashboard_setup', $plugin_admin, 'vslm_add_dashboard_widget');
+		$this->loader->add_action('init', $plugin_admin, 'vslm_register_license_post_type');
+		$this->loader->add_filter('post_updated_messages', $plugin_admin, 'vslm_license_post_updated_messages');
+		$this->loader->add_action('add_meta_boxes', $plugin_admin, 'vslm_add_license_meta_boxes');
+		$this->loader->add_action('add_meta_boxes', $plugin_admin, 'vslm_add_json_response_meta_box');
+		$this->loader->add_action('save_post', $plugin_admin, 'vslm_save_license_meta', 10, 2);
+		$this->loader->add_filter('wp_insert_post_data', $plugin_admin, 'vslm_set_numeric_slug', 10, 2);
+		$this->loader->add_action('init', $plugin_admin, 'vslm_register_product_taxonomy');
+		$this->loader->add_action('admin_bar_menu', $plugin_admin, 'vslm_remove_admin_bar_view_posts', 999);
+		$this->loader->add_filter('post_row_actions', $plugin_admin, 'vslm_remove_view_link', 10, 2);
+		$this->loader->add_filter('post_row_actions', $plugin_admin, 'vslm_remove_quick_edit', 10, 2);
+		$this->loader->add_filter('manage_vslm-licenses_posts_columns', $plugin_admin, 'vslm_add_license_columns');
+		$this->loader->add_action('manage_vslm-licenses_posts_custom_column', $plugin_admin, 'vslm_fill_license_columns', 10, 2);
+		$this->loader->add_filter('manage_edit-vslm-licenses_sortable_columns', $plugin_admin, 'vslm_sortable_license_columns');
+		$this->loader->add_action('pre_get_posts', $plugin_admin, 'vslm_orderby_license_columns');
+		$this->loader->add_action('admin_head', $plugin_admin, 'vslm_custom_admin_styles');
+		$this->loader->add_action('admin_menu', $plugin_admin, 'vslm_add_settings_page');
+		$this->loader->add_action('admin_init', $plugin_admin, 'vslm_settings_init');
+		$this->loader->add_action('wp_ajax_generate_ck_key', $plugin_admin, 'vslm_generate_ck_key');
+		$this->loader->add_action('wp_ajax_generate_cs_key', $plugin_admin, 'vslm_generate_cs_key');
+		$this->loader->add_action('rest_api_init', $plugin_admin, 'vslm_register_license_status_endpoint');
+		$this->loader->add_action('wp', $plugin_admin, 'vslm_schedule_cron_job');
+		$this->loader->add_action('smarty_vslm_license_check', $plugin_admin, 'vslm_check_expired_licenses');
 
 		// Register hooks for Activity & Logging
-		$this->loader->add_action('admin_init', $plugin_activity_logging, 'fs_al_settings_init');
-        $this->loader->add_action('wp_ajax_smarty_fs_clear_logs', $plugin_activity_logging, 'fs_handle_ajax_clear_logs');
+		$this->loader->add_action('admin_init', $plugin_activity_logging, 'vslm_al_settings_init');
+        $this->loader->add_action('wp_ajax_smarty_vslm_clear_logs', $plugin_activity_logging, 'vslm_handle_ajax_clear_logs');
 	}
 
 	/**
