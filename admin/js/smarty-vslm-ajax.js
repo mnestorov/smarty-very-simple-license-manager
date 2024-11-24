@@ -33,10 +33,11 @@
             e.preventDefault(); // Prevent the default form action
 
             $.ajax({
-                url: smarty_vslm_ajax.ajax_url,
+                url: smartyVerySimpleLicenseManager.ajaxUrl,
                 method: 'POST',
                 data: {
-                    action: 'smarty_vslm_generate_ck_key'
+                    action: 'vslm_generate_ck_key',
+                    nonce: smartyVerySimpleLicenseManager.nonce,
                 },
                 success: function (response) {
                     if (response.success) {
@@ -51,10 +52,11 @@
             e.preventDefault(); // Prevent the default form action
 
             $.ajax({
-                url: smarty_vslm_ajax.ajax_url,
+                url: smartyVerySimpleLicenseManager.ajaxUrl,
                 method: 'POST',
                 data: {
-                    action: 'smarty_vslm_generate_cs_key'
+                    action: 'vslm_generate_cs_key',
+                    nonce: smartyVerySimpleLicenseManager.nonce,
                 },
                 success: function (response) {
                     if (response.success) {
@@ -62,6 +64,29 @@
                     }
                 }
             });
+        });
+
+        // Delete admin logs
+        $('#smarty-vslm-delete-logs-button').on('click', function(e) {
+            e.preventDefault();
+
+            if (confirm('Are you sure you want to delete all logs?')) {
+                $.post(
+                    smartyVerySimpleLicenseManager.ajaxUrl,
+                    {
+                        action: 'vslm_clear_logs',
+                        nonce: smartyVerySimpleLicenseManager.nonce,
+                    },
+                    function(response) {
+                        if (response.success) {
+                            alert('Logs cleared.');
+                            location.reload();
+                        } else {
+                            alert('Failed to clear logs.');
+                        }
+                    }
+                );
+            }
         });
     });
 })(jQuery);

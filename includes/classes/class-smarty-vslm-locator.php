@@ -163,15 +163,17 @@ class Smarty_Vslm_Locator {
 		$this->loader->add_action('admin_head', $plugin_admin, 'vslm_custom_admin_styles');
 		$this->loader->add_action('admin_menu', $plugin_admin, 'vslm_add_settings_page');
 		$this->loader->add_action('admin_init', $plugin_admin, 'vslm_settings_init');
-		$this->loader->add_action('wp_ajax_generate_ck_key', $plugin_admin, 'vslm_generate_ck_key');
-		$this->loader->add_action('wp_ajax_generate_cs_key', $plugin_admin, 'vslm_generate_cs_key');
+		$this->loader->add_action('wp_ajax_vslm_generate_ck_key', $plugin_admin, 'vslm_generate_ck_key');
+		$this->loader->add_action('wp_ajax_nopriv_vslm_generate_ck_key', $plugin_admin, 'vslm_generate_ck_key');
+		$this->loader->add_action('wp_ajax_vslm_generate_cs_key', $plugin_admin, 'vslm_generate_cs_key');
+		$this->loader->add_action('wp_ajax_nopriv_vslm_generate_cs_key', $plugin_admin, 'vslm_generate_cs_key');
 		$this->loader->add_action('rest_api_init', $plugin_admin, 'vslm_register_license_status_endpoint');
 		$this->loader->add_action('wp', $plugin_admin, 'vslm_schedule_cron_job');
 		$this->loader->add_action('smarty_vslm_license_check', $plugin_admin, 'vslm_check_expired_licenses');
 
 		// Register hooks for Activity & Logging
 		$this->loader->add_action('admin_init', $plugin_activity_logging, 'vslm_al_settings_init');
-        $this->loader->add_action('wp_ajax_smarty_vslm_clear_logs', $plugin_activity_logging, 'vslm_handle_ajax_clear_logs');
+        $this->loader->add_action('wp_ajax_vslm_clear_logs', $plugin_activity_logging, 'vslm_handle_ajax_clear_logs');
 	}
 
 	/**

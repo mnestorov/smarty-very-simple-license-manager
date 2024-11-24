@@ -14,7 +14,7 @@
  * @subpackage Smarty_Very_Simple_License_Manager/includes/classes
  * @author     Smarty Studio | Martin Nestorov
  */
-class Smarty_Form_Submissions_Loader {
+class Smarty_Vslm_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

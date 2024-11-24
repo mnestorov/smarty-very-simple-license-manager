@@ -2,7 +2,7 @@
  * All of the CSS for plugin admin functionality should be included in this file.
  */
 
-.smarty-vslm-status-circle {
+ .smarty-vslm-status-circle {
     width: 15px; 
     height: 15px;
     border-radius: 50%; 
@@ -339,6 +339,17 @@
     color: #005177;
 }
 
+/* Styling for the waarning message in settings "General" tab */
+.smarty-vslm-warning-msg {
+    color: #726a51;
+    background-color: #fff3cd; 
+    border: 1px solid #e5d4a2; 
+    border-left: 4px solid #e5d4a2; 
+    border-radius: 3px; 
+    padding: 10px; 
+    margin-top: 20px;
+}
+
 /* Helpers */
 .active {
     color: #28a745;
@@ -348,6 +359,10 @@
 .inactive {
     color: #dc3545;
     font-weight: bold;
+}
+
+.warning {
+    color: #726a51;
 }
 
 .smarty-json-response,

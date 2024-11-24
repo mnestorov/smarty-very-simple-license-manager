@@ -82,7 +82,7 @@ class Smarty_Vslm_Admin {
 	 *
 	 * @since    1.0.1
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts($hook) {
 		/**
 		 * This function enqueues custom JavaScript for the plugin settings in WordPress admin.
 		 *
@@ -100,20 +100,26 @@ class Smarty_Vslm_Admin {
         // Check if we're on the License Manager settings page
         if ($hook === 'settings_page_smarty-vslm-settings') {
             // Enqueue AJAX script for the settings page
-            wp_enqueue_script('vslm-ajax', plugin_dir_url(__FILE__) . 'js/smarty-vslm-ajax.js', array('jquery'), $this->version, true);
+            wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-ajax.js', array('jquery'), $this->version, false);
 
             // Localize AJAX URL for the JavaScript
-            wp_localize_script('vslm-ajax', 'smarty_vslm_ajax', array(
-                'ajax_url' => admin_url('admin-ajax.php')
-            ));
+            wp_localize_script(
+                $this->plugin_name,
+                'smartyVerySimpleLicenseManager',
+                array(
+                    'ajaxUrl' => admin_url('admin-ajax.php'),
+                    'siteUrl' => site_url(),
+                    'nonce'   => wp_create_nonce('smarty_vslm_license_nonce'),
+                )
+            );
         }
 
         // Check if we're on any license-related pages (edit, add, or post screen)
         if ($hook === 'edit.php' || $hook === 'post.php' || $hook === 'post-new.php') {
             if ($post_type === 'vslm-licenses' || get_post_type() === 'vslm-licenses') {
                 // Enqueue CSS and JS files for license post type
-                wp_enqueue_script('vslm-admin-js', plugin_dir_url(__FILE__) . 'js/smarty-vslm-admin.js', array(), $this->version, true);
-                wp_enqueue_script('vslm-json-js', plugin_dir_url(__FILE__) . 'js/smarty-vslm-json.js', array(), $this->version, true);
+                wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-admin.js', array(), $this->version, false);
+                wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-json.js', array(), $this->version, false);
             }
         }
 	}
@@ -125,9 +131,9 @@ class Smarty_Vslm_Admin {
      */
     public function vslm_add_dashboard_widget() {
         wp_add_dashboard_widget(
-            'smarty_vslm_dashboard_widget',         // Widget ID
-            'License Manager Overview',             // Widget Title
-            'smarty_vslm_dashboard_widget_render'   // Callback function to display content
+            'smarty_vslm_dashboard_widget',                                         // Widget ID
+            __('License Manager Overview', 'smarty-very-simple-license-manager'),   // Widget Title
+            array($this, 'vslm_dashboard_widget_render_cb')                         // Callback function to display content
         );
     }
 
@@ -136,7 +142,7 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function vslm_dashboard_widget_render() {
+    public function vslm_dashboard_widget_render_cb() {
         // Query for licenses and count statuses
         $total_count = wp_count_posts('vslm-licenses')->publish; // Get total published licenses
         $active_count = smarty_vslm_get_license_count_by_status('active');
@@ -151,21 +157,21 @@ class Smarty_Vslm_Admin {
             <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                 <thead>
                     <tr style="background-color: #f5f5f5; border-bottom: 1px solid #ddd;">
-                        <th style="border-top: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
-                        <th style="border-top: 1px solid #ddd; padding: 8px; text-align: center;">Count</th>
+                        <th style="border-top: 1px solid #ddd; padding: 8px; text-align: left;"><?php echo __('Status', 'smarty-very-simple-license-manager'); ?></th>
+                        <th style="border-top: 1px solid #ddd; padding: 8px; text-align: center;"><?php echo __('Count', 'smarty-very-simple-license-manager'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #28a745; font-weight: bold;">Active Licenses</td>
+                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #28a745; font-weight: bold;"><?php echo __('Active Licenses', 'smarty-very-simple-license-manager'); ?></td>
                         <td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;"><?php echo $active_count; ?></td>
                     </tr>
                     <tr>
-                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #dc3545; font-weight: bold;">Inactive Licenses</td>
+                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #dc3545; font-weight: bold;"><?php echo __('Inactive Licenses', 'smarty-very-simple-license-manager'); ?></td>
                         <td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;"><?php echo  $inactive_count; ?></td>
                     </tr>
                     <tr>
-                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #427eab; font-weight: bold;">Expired Licenses</td>
+                        <td style="border-top: 1px solid #ddd; padding: 8px; color: #427eab; font-weight: bold;"><?php echo __('Expired Licenses', 'smarty-very-simple-license-manager'); ?></td>
                         <td style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;"><?php echo $expired_count; ?></td>
                     </tr>
                 </tbody>
@@ -238,7 +244,7 @@ class Smarty_Vslm_Admin {
     public function vslm_add_license_meta_boxes() {
         add_meta_box(
             'license_details',
-            vslm_license_meta_box_title(),          // Set title with dynamic status dot
+            array($this, 'vslm_license_meta_box_title'), // Set title with dynamic status dot
             array($this, 'vslm_license_details_cb'),
             'vslm-licenses',
             'normal',
@@ -369,7 +375,7 @@ class Smarty_Vslm_Admin {
         $usage_url = get_post_meta($post->ID, '_usage_url', true); // Retrieve the usage URL
         $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: array();
         $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
-        $wp_version = get_post_meta($post->ID, '_wp_version', true); // Retrieve the WordPress version
+        $wp_version = get_post_meta($post->ID, '_wp_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
 		
         // Retrieve plugin information
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
@@ -403,7 +409,7 @@ class Smarty_Vslm_Admin {
 										<td>
 											<div class="smarty-vslm-field-wrapper">
 												<input type="text" name="license_key" id="smarty_vslm_license_key" value="<?php echo esc_attr($license_key); ?>" readonly />
-												<button type="button" class="button smarty-vslm-generate-key-button" onclick="generateLicenseKey()"><?php esc_html(_e('Generate Key', 'smarty-very-simple-license-manager')); ?></button>
+												<button type="button" class="button smarty-vslm-generate-key-button" onclick="<?php echo Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License key generated for License #{$post->ID}"); ?>"><?php esc_html(_e('Generate Key', 'smarty-very-simple-license-manager')); ?></button>
 											</div>
 										</td>
 									</tr>
@@ -479,49 +485,49 @@ class Smarty_Vslm_Admin {
                                     <table class="smarty-vslm-nested-table">
 										<thead>
 											<tr>
-												<th colspan="2" style="text-align: center;"><?php echo esc_html($usage_url ?? __('N/A', 'smarty-very-simple-license-manager')); ?></th>
+												<th colspan="2" style="text-align: center;"><?php echo esc_html($usage_url ?: __('N/A', 'smarty-very-simple-license-manager')); ?></th>
 											</tr>
 										</thead>
                                         <tbody>
                                             <tr>
                                                 <td><label><?php esc_html(_e('Plugin Name', 'smarty-very-simple-license-manager')); ?></label></td>
-                                                <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="plugin_name" value="<?php echo esc_html($plugin_name); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Plugin Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="plugin_version" value="<?php echo esc_html($plugin_version); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('WP Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="wp_version" value="<?php echo esc_html($wp_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="wp_version" value="<?php echo esc_html($wp_version); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Web Server', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="web_server" value="<?php echo esc_html($web_server ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="web_server" value="<?php echo esc_html($web_server); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Server IP', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="server_ip" value="<?php echo esc_html($server_ip); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('PHP Version', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="php_version" value="<?php echo esc_html($php_version ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="php_version" value="<?php echo esc_html($php_version); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('User IP', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="user_ip" value="<?php echo esc_html($user_ip ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="user_ip" value="<?php echo esc_html($user_ip); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Browser', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="browser" value="<?php echo esc_html($browser ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="browser" value="<?php echo esc_html($browser); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Device Type', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="device_type" value="<?php echo esc_html($device_type ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="device_type" value="<?php echo esc_html($device_type); ?>" readonly /></td>
                                             </tr>
                                             <tr>
                                                 <td><label><?php esc_html_e('Operating System', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                <td><input type="text" name="os" value="<?php echo esc_html($os ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                <td><input type="text" name="os" value="<?php echo esc_html($os); ?>" readonly /></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -545,7 +551,7 @@ class Smarty_Vslm_Admin {
 												<table class="smarty-vslm-nested-table">
 													<thead>
 														<tr>
-															<th colspan="2" style="text-align: center;"><?php echo esc_html($url_data['site_url'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?></th>
+															<th colspan="2" style="text-align: center;"><?php echo esc_html($url_data['site_url']); ?></th>
 														</tr>
 													</thead>
                                                     <tbody>
@@ -555,39 +561,39 @@ class Smarty_Vslm_Admin {
 														</tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Plugin Version:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="plugin_version" value="<?php echo esc_html($url_data['plugin_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="plugin_version" value="<?php echo esc_html($url_data['plugin_version']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('WP Version:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="wp_version" value="<?php echo esc_html($url_data['wp_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="wp_version" value="<?php echo esc_html($url_data['wp_version']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Web Server:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="web_server" value="<?php echo esc_html($url_data['web_server'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="web_server" value="<?php echo esc_html($url_data['web_server']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Server IP:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="server_ip" value="<?php echo esc_html($url_data['server_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="server_ip" value="<?php echo esc_html($url_data['server_ip']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('PHP Version:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="php_version" value="<?php echo esc_html($url_data['php_version'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="php_version" value="<?php echo esc_html($url_data['php_version']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('User IP:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="user_ip" value="<?php echo esc_html($url_data['user_ip'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="user_ip" value="<?php echo esc_html($url_data['user_ip']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Browser:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="browser" value="<?php echo esc_html($url_data['browser'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="browser" value="<?php echo esc_html($url_data['browser']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Device Type:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="device_type" value="<?php echo esc_html($url_data['device_type'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="device_type" value="<?php echo esc_html($url_data['device_type']); ?>" readonly /></td>
                                                         </tr>
                                                         <tr>
                                                             <td><label><?php esc_html_e('Operating System:', 'smarty-very-simple-license-manager'); ?></label></td>
-                                                            <td><input type="text" name="os" value="<?php echo esc_html($url_data['os'] ?? __('N/A', 'smarty-very-simple-license-manager')); ?>" readonly /></td>
+                                                            <td><input type="text" name="os" value="<?php echo esc_html($url_data['os']); ?>" readonly /></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -648,6 +654,8 @@ class Smarty_Vslm_Admin {
                 $license_key = strtoupper(wp_generate_password(16, false, false));
             }
             update_post_meta($post_id, '_license_key', $license_key);
+
+            Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License key updated for License #$post_id: $license_key.");
 
             // Update other fields
             update_post_meta($post_id, '_client_name', sanitize_text_field($_POST['client_name']));
@@ -797,23 +805,22 @@ class Smarty_Vslm_Admin {
     public function vslm_fill_license_columns($column, $post_id) {
         if ($column === 'license_key') {
             $license_key = get_post_meta($post_id, '_license_key', true);
-            $masked_key = substr($license_key, 0, 4) . '-XXXX-XXXX-XXXX';
+            $masked_key = substr($license_key, 0, 4) . '-XXXX-XXXX-XXXX'; ?>
 
-            echo '<div class="smarty-vslm-license-key-wrapper">';
+            <div class="smarty-vslm-license-key-wrapper">
             
-            // Masked key
-            echo '<span class="smarty-vslm-masked-key" style="vertical-align: middle;">' . esc_html($masked_key) . '</span>';
-            echo '<input type="hidden" class="smarty-vslm-full-key" value="' . esc_attr($license_key) . '" />';
-        
-            // Show/Hide and Copy links
-            echo '<div class="smarty-vslm-key-toggle-links">';
-            echo '<a href="#" class="row-actions smarty-vslm-show-key-link">Show</a>';
-            echo '<a href="#" class="row-actions smarty-vslm-hide-key-link" style="display:none;">Hide</a>';
-            echo '<span class="row-actions">|</span>';
-            echo '<a href="#" class="row-actions smarty-vslm-copy-key-link" onclick="copyLicenseKey(this, \'' . esc_attr($license_key) . '\')">Copy</a>';
-            echo '</div>';
+                <!-- Masked key -->
+                <span class="smarty-vslm-masked-key" style="vertical-align: middle;"><?php echo esc_html($masked_key); ?></span>
+                <input type="hidden" class="smarty-vslm-full-key" value="<?php echo esc_attr($license_key); ?>" />
             
-            echo '</div>';
+                <!-- Show/Hide and Copy links -->
+                <div class="smarty-vslm-key-toggle-links">
+                    <a href="#" class="row-actions smarty-vslm-show-key-link"><?php echo esc_html(__('Show', 'smarty-very-simple-license-manager')); ?></a>
+                    <a href="#" class="row-actions smarty-vslm-hide-key-link" style="display:none;"><?php echo esc_html(__('Hide', 'smarty-very-simple-license-manager')); ?></a>
+                    <span class="row-actions">|</span>
+                    <a href="#" class="row-actions smarty-vslm-copy-key-link" data-license-key="<?php echo esc_attr($license_key); ?>"><?php echo esc_html(__('Copy', 'smarty-very-simple-license-manager')); ?></a>
+                </div>
+            </div><?php
         } elseif ($column === 'license_status') {
             $status = get_post_meta($post_id, '_status', true);
             $status_text = ucfirst($status);
@@ -948,16 +955,20 @@ class Smarty_Vslm_Admin {
             __('License Manager', 'smarty-very-simple-license-manager'),
             'manage_options', 
             'smarty-vslm-settings', 
-            'smarty_vslm_settings_page_html'
+            array($this, 'vslm_display_settings_page')
         );
-		add_submenu_page(
-			'options-general.php',
-			__('Form Submissions | Settings', 'smarty-form-submissions'),
-			__('Form Submissions', 'smarty-form-submissions'),
-			'manage_options',
-			'smarty-fs-settings',
-			array($this, 'fs_display_settings_page')
+	}
+
+    /**
+	 * @since    1.0.0
+	 */
+	private function vslm_get_settings_tabs() {
+		$tabs = array(
+			'general' 		   => __('General', 'smarty-very-simple-license-manager'),
+			'activity-logging' => __('Activity & Logging', 'smarty-very-simple-license-manager'),
 		);
+		
+		return $tabs;
 	}
 
 	/**
@@ -969,6 +980,9 @@ class Smarty_Vslm_Admin {
 		if (!current_user_can('manage_options')) {
 			return;
 		}
+
+        $current_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+		$tabs = $this->vslm_get_settings_tabs();
 
 		// Define the path to the external file
 		$partial_file = plugin_dir_path(__FILE__) . 'partials/smarty-vslm-admin-display.php';
@@ -985,23 +999,28 @@ class Smarty_Vslm_Admin {
 	 *
 	 * @since    1.0.1
 	 */
-	public function smarty_vslm_settings_init() {
-		register_setting('smarty_vslm_settings', 'smarty_vslm_ck_key');
-        register_setting('smarty_vslm_settings', 'smarty_vslm_cs_key');
+	public function vslm_settings_init() {
+        // Check if the settings were saved and set a transient
+		if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
+			set_transient('smarty_vslm_settings_updated', 'yes', 5);
+		}
+
+		register_setting('smarty_vslm_options_general', 'smarty_vslm_ck_key');
+        register_setting('smarty_vslm_options_general', 'smarty_vslm_cs_key');
 
         // Add General section
         add_settings_section(
             'smarty_vslm_section_general',                          // ID of the section
             __('General', 'smarty-very-simple-license-manager'),    // Title of the section
-            array($this, 'smarty_vslm_section_general_cb'),         // Callback function that fills the section with the desired content
-            'smarty_vslm_settings'                                  // Page on which to add the section
+            array($this, 'vslm_section_general_cb'),                // Callback function that fills the section with the desired content
+            'smarty_vslm_options_general'                           // Page on which to add the section
         );
 
         add_settings_field(
             'smarty_vslm_ck_key', 
             __('Consumer Key', 'smarty-very-simple-license-manager'),
             array($this, 'vslm_ck_key_cb'), 
-            'smarty_vslm_settings', 
+            'smarty_vslm_options_general', 
             'smarty_vslm_section_general'
         );
 
@@ -1009,7 +1028,7 @@ class Smarty_Vslm_Admin {
             'smarty_vslm_cs_key', 
             __('Consumer Secret', 'smarty-very-simple-license-manager'),
             array($this, 'vslm_cs_key_cb'), 
-            'smarty_vslm_settings', 
+            'smarty_vslm_options_general', 
             'smarty_vslm_section_general'
         );
 	}
@@ -1019,7 +1038,7 @@ class Smarty_Vslm_Admin {
      * 
      * @since    1.0.1
      */
-    public function smarty_vslm_section_general_cb() { ?>
+    public function vslm_section_general_cb() { ?>
         <p><?php echo esc_html(_e('General settings for the License Manager.', 'smarty-very-simple-license-manager')); ?></p>
         <hr><?php
     }
@@ -1056,6 +1075,9 @@ class Smarty_Vslm_Admin {
     public function vslm_generate_ck_key() {
         $ck_key = 'ck_' . bin2hex(random_bytes(20)); // Generate a CK key
         update_option('smarty_vslm_ck_key', $ck_key);
+
+        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("New CK key generated: $ck_key.");
+
         wp_send_json_success($ck_key);
     }
     
@@ -1067,6 +1089,9 @@ class Smarty_Vslm_Admin {
     public function vslm_generate_cs_key() {
         $cs_key = 'cs_' . bin2hex(random_bytes(20)); // Generate a CS key
         update_option('smarty_vslm_cs_key', $cs_key);
+
+        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("New CS key generated: $cs_key.");
+
         wp_send_json_success($cs_key);
     }
     
@@ -1152,6 +1177,8 @@ class Smarty_Vslm_Admin {
 		}
 
         $license_id = $license_posts[0]->ID;
+        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License #$license_id successfully activated on site: $site_url.");
+
         $multi_domain = get_post_meta($license_id, '_multi_domain', true);
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
@@ -1304,6 +1331,7 @@ class Smarty_Vslm_Admin {
             $expiration_date = get_post_meta($license->ID, '_expiration_date', true);
             if (strtotime($expiration_date) < time()) {
                 update_post_meta($license->ID, '_status', 'expired');
+                Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License #{$license->ID} marked as expired.");
             }
         }
     }
