@@ -100,11 +100,11 @@ class Smarty_Vslm_Admin {
         // Check if we're on the License Manager settings page
         if ($hook === 'settings_page_smarty-vslm-settings') {
             // Enqueue AJAX script for the settings page
-            wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-ajax.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('smarty-vslm-ajax', plugin_dir_url(__FILE__) . 'js/smarty-vslm-ajax.js', array('jquery'), time(), true);
 
             // Localize AJAX URL for the JavaScript
             wp_localize_script(
-                $this->plugin_name,
+                'smarty-vslm-ajax',
                 'smartyVerySimpleLicenseManager',
                 array(
                     'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -114,13 +114,10 @@ class Smarty_Vslm_Admin {
             );
         }
 
-        // Check if we're on any license-related pages (edit, add, or post screen)
-        if ($hook === 'edit.php' || $hook === 'post.php' || $hook === 'post-new.php') {
-            if ($post_type === 'vslm-licenses' || get_post_type() === 'vslm-licenses') {
-                // Enqueue CSS and JS files for license post type
-                wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-admin.js', array(), $this->version, false);
-                wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-json.js', array(), $this->version, false);
-            }
+        if ($post_type === 'vslm-licenses' || get_post_type() === 'vslm-licenses') {
+            // Enqueue JS files for license post type
+            wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/smarty-vslm-admin.js', array(), $this->version, false);
+            wp_enqueue_script('smarty-vslm-json', plugin_dir_url(__FILE__) . 'js/smarty-vslm-json.js', array(), time(), true);
         }
 	}
 
@@ -325,7 +322,7 @@ class Smarty_Vslm_Admin {
                 <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
                 <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
             </p>
-            <div class="smarty-json-response smarty-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
+            <div class="smarty-vslm-json-response smarty-vslm-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
                 <p class="success"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
             </div>
             <?php
@@ -346,7 +343,7 @@ class Smarty_Vslm_Admin {
                         <strong><?php echo __('Client URL:', 'smarty-very-simple-license-manager'); ?></strong>
                         <a href="<?php echo esc_url($endpoint); ?>" target="_blank"><?php echo esc_url($endpoint); ?></a>
                     </p>
-                    <div class="smarty-json-response smarty-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
+                    <div class="smarty-vslm-json-response smarty-vslm-json-container" data-json-endpoint="<?php echo esc_url($endpoint); ?>">
                         <p class="success"><?php echo __('Loading JSON response...', 'smarty-very-simple-license-manager'); ?></p>
                     </div>
                     <?php
@@ -1103,8 +1100,8 @@ class Smarty_Vslm_Admin {
     public function vslm_register_license_status_endpoint() {
         register_rest_route('smarty-vslm/v1', '/check-license', array(
             'methods'             => 'GET',
-            'callback'            => 'vslm_check_license_status',
-            'permission_callback' => 'vslm_basic_auth_permission_check',
+            'callback'            => array($this, 'vslm_check_license_status_cb'),
+            'permission_callback' => array($this, 'vslm_basic_auth_permission_check_cb'),
         ));
     }
 
@@ -1114,7 +1111,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      * @return bool True if authentication is successful, false otherwise.
      */
-    public function vslm_basic_auth_permission_check() {
+    public function vslm_basic_auth_permission_check_cb() {
         $headers = getallheaders();
         if (isset($headers['Authorization'])) {
             $auth_header = $headers['Authorization'];
@@ -1143,7 +1140,7 @@ class Smarty_Vslm_Admin {
      * @param WP_REST_Request $request The REST request object.
      * @return WP_REST_Response The REST response with license status, expiration date, usage URL, and WordPress version.
      */
-    public function vslm_check_license_status(WP_REST_Request $request) {
+    public function vslm_check_license_status_cb(WP_REST_Request $request) {
         $license_key = $request->get_param('license_key');
         $site_url = $request->get_param('site_url');
         $wp_version = $request->get_param('wp_version');
