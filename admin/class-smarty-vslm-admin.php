@@ -1036,8 +1036,7 @@ class Smarty_Vslm_Admin {
      * @since    1.0.1
      */
     public function vslm_section_general_cb() { ?>
-        <p><?php echo esc_html(_e('General settings for the License Manager.', 'smarty-very-simple-license-manager')); ?></p>
-        <hr><?php
+        <p><?php echo esc_html(_e('General settings for the License Manager.', 'smarty-very-simple-license-manager')); ?></p><?php
     }
 
     /**
