@@ -23,6 +23,11 @@ class Smarty_Vslm_Pdf_Generator {
     public function vslm_pdf_settings_init() {
         // Register settings for PDF title
         register_setting('smarty_vslm_options_pdf_generator', 'smarty_vslm_pdf_title');
+        register_setting('smarty_vslm_options_pdf_generator', 'smarty_vslm_pdf_text');
+        register_setting('smarty_vslm_options_pdf_generator', 'smarty_vslm_pdf_copyright');
+        register_setting('smarty_vslm_options_pdf_generator', 'smarty_vslm_pdf_contact_email');
+        register_setting('smarty_vslm_options_pdf_generator', 'smarty_vslm_pdf_contact_phone');
+
 
         // Add PDF Settings section
         add_settings_section(
@@ -37,6 +42,42 @@ class Smarty_Vslm_Pdf_Generator {
             'smarty_vslm_pdf_title',
             __('PDF Title', 'smarty-very-simple-license-manager'),
             array($this, 'vslm_pdf_title_cb'),
+            'smarty_vslm_options_pdf_generator',
+            'smarty_vslm_section_pdf_generator'
+        );
+
+        // Add Text field
+        add_settings_field(
+            'smarty_vslm_pdf_text',
+            __('Text', 'smarty-very-simple-license-manager'),
+            array($this, 'vslm_pdf_text_cb'),
+            'smarty_vslm_options_pdf_generator',
+            'smarty_vslm_section_pdf_generator'
+        );
+
+        // Add Copyright Text field
+        add_settings_field(
+            'smarty_vslm_pdf_copyright',
+            __('Copyright', 'smarty-very-simple-license-manager'),
+            array($this, 'vslm_pdf_copyright_cb'),
+            'smarty_vslm_options_pdf_generator',
+            'smarty_vslm_section_pdf_generator'
+        );
+
+        // Add Contact Email field
+        add_settings_field(
+            'smarty_vslm_pdf_contact_email',
+            __('Support Email', 'smarty-very-simple-license-manager'),
+            array($this, 'vslm_pdf_contact_email_cb'),
+            'smarty_vslm_options_pdf_generator',
+            'smarty_vslm_section_pdf_generator'
+        );
+
+        // Add Contact Phone field
+        add_settings_field(
+            'smarty_vslm_pdf_contact_phone',
+            __('Support Phone', 'smarty-very-simple-license-manager'),
+            array($this, 'vslm_pdf_contact_phone_cb'),
             'smarty_vslm_options_pdf_generator',
             'smarty_vslm_section_pdf_generator'
         );
@@ -60,6 +101,50 @@ class Smarty_Vslm_Pdf_Generator {
         $pdf_title = get_option('smarty_vslm_pdf_title', 'License Details');
         echo '<input type="text" id="smarty_vslm_pdf_title" name="smarty_vslm_pdf_title" value="' . esc_attr($pdf_title) . '" />';
         echo '<p class="description">' . __('Set the title to be displayed on the generated PDFs.', 'smarty-very-simple-license-manager') . '</p>';
+    }
+
+    /**
+     * Callback for the Text field.
+     * 
+     * @since    1.0.2
+     */
+    public function vslm_pdf_text_cb() {
+        $pdf_text = get_option('smarty_vslm_pdf_text', '');
+        echo '<textarea id="smarty_vslm_pdf_text" name="smarty_vslm_pdf_text" rows="4" cols="50">' . esc_textarea($pdf_text) . '</textarea>';
+        echo '<p class="description">' . __('Enter the text to display in the PDF.', 'smarty-very-simple-license-manager') . '</p>';
+    }
+
+    /**
+     * Callback for the Copyright field.
+     * 
+     * @since    1.0.2
+     */
+    public function vslm_pdf_copyright_cb() {
+        $copyright_text = get_option('smarty_vslm_pdf_copyright', '');
+        echo '<textarea id="smarty_vslm_pdf_copyright" name="smarty_vslm_pdf_copyright" rows="4" cols="50">' . esc_textarea($copyright_text) . '</textarea>';
+        echo '<p class="description">' . __('Enter the copyright text to display in the PDF.', 'smarty-very-simple-license-manager') . '</p>';
+    }
+
+    /**
+     * Callback for the Contact Email field.
+     * 
+     * @since    1.0.2
+     */
+    public function vslm_pdf_contact_email_cb() {
+        $contact_email = get_option('smarty_vslm_pdf_contact_email', '');
+        echo '<input type="email" id="smarty_vslm_pdf_contact_email" name="smarty_vslm_pdf_contact_email" value="' . esc_attr($contact_email) . '" />';
+        echo '<p class="description">' . __('Enter the support email to display in the PDF.', 'smarty-very-simple-license-manager') . '</p>';
+    }
+
+    /**
+     * Callback for the Contact Phone field.
+     * 
+     * @since    1.0.2
+     */
+    public function vslm_pdf_contact_phone_cb() {
+        $contact_phone = get_option('smarty_vslm_pdf_contact_phone', '');
+        echo '<input type="text" id="smarty_vslm_pdf_contact_phone" name="smarty_vslm_pdf_contact_phone" value="' . esc_attr($contact_phone) . '" />';
+        echo '<p class="description">' . __('Enter the support phone number to display in the PDF.', 'smarty-very-simple-license-manager') . '</p>';
     }
 
     /**
@@ -98,17 +183,17 @@ class Smarty_Vslm_Pdf_Generator {
      */
     public static function vslm_license_pdf($license_id) {
         if (!$license_id) {
-            _vslm_write_logs("License ID is empty or null.");
-            wp_die(__('Invalid license ID: ID is empty.', 'smarty-very-simple-license-manager'));
+            //_vslm_write_logs("License ID is empty or null.");
+            wp_die(__('Invalid license ID: The ID is empty.', 'smarty-very-simple-license-manager'));
         }
 
         $post_type = get_post_type($license_id);
 
         if (!$license_id || get_post_type($license_id) !== 'vslm-licenses') {
-            _vslm_write_logs("Invalid License ID: {$license_id}");
+            //_vslm_write_logs("Invalid License ID: {$license_id}");
             wp_die(__('Invalid license ID.', 'smarty-very-simple-license-manager'));
         }
-        _vslm_write_logs("Generating PDF for License ID: {$license_id}");
+        //_vslm_write_logs("Generating PDF for License ID: {$license_id}");
 
         // Debug the data retrieval
         $debug_log = [];
@@ -133,22 +218,25 @@ class Smarty_Vslm_Pdf_Generator {
         $debug_log['purchase_date'] = $purchase_date;
         $debug_log['expiration_date'] = $expiration_date;
     
-        _vslm_write_logs(print_r($debug_log, true));
+        //_vslm_write_logs(print_r($debug_log, true));
     
         // Get custom PDF title from settings
-        $pdf_title = get_option('smarty_vslm_pdf_title', 'License Details');
         $site_name = get_bloginfo('name');
+        $pdf_title = get_option('smarty_vslm_pdf_title', 'License Details');
+        $pdf_text = get_option('smarty_vslm_pdf_text', '');
+        $copyright_text = get_option('smarty_vslm_pdf_copyright', '');
+        $contact_email = get_option('smarty_vslm_pdf_contact_email', '');
+        $contact_phone = get_option('smarty_vslm_pdf_contact_phone', '');
+
+        // Load external CSS
+        $css_file_path = plugin_dir_path(__FILE__) . '../css/smarty-vslm-pdf.css';
+        $css = file_exists($css_file_path) ? file_get_contents($css_file_path) : '';
     
         // Prepare HTML for PDF
         $html = '
-            <style>
-                body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                .table th { background-color: #f4f4f4; }
-            </style>
+            <style>' . $css . '</style>
             <div class="header">
+                <div> #10000' . esc_html($license_id) . '</div>
                 <h2>' . esc_html($site_name) . '</h2>
                 <h4>' . esc_html($pdf_title) . '</h4>
             </div>
@@ -160,7 +248,23 @@ class Smarty_Vslm_Pdf_Generator {
                 <tr><th>' . __('Client Email', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_email) . '</td></tr>
                 <tr><th>' . __('Purchase Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($purchase_date) . '</td></tr>
                 <tr><th>' . __('Expiration Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($expiration_date) . '</td></tr>
-            </table>';
+            </table>
+            <div class="pdf-text">
+                <p>' . nl2br(esc_html($pdf_text)) . '</p>
+            </div>
+            <div class="contact-info">
+                <hr>
+                <table class="contact-table">
+                    <tr>
+                        <td class="left"><strong>' . __('Phone:', 'smarty-very-simple-license-manager') . '</strong> ' . esc_html($contact_phone) . '</td>
+                        <td class="right"><strong>' . __('Email:', 'smarty-very-simple-license-manager') . '</strong> ' . esc_html($contact_email) . '</td>
+                    </tr>
+                </table>
+                <hr>
+            </div>
+            <div class="pdf-copyright">
+                <p>' . nl2br(esc_html($copyright_text)) . '</p>
+            </div>';
     
         // Initialize Dompdf
         $options = new Options();
@@ -171,7 +275,7 @@ class Smarty_Vslm_Pdf_Generator {
         $dompdf->render();
     
         // Output the PDF
-        $dompdf->stream('license-details-' . $license_id . '.pdf', array('Attachment' => true));
+        $dompdf->stream('smartystudio-license-details-10000' . $license_id . '.pdf', array('Attachment' => true));
         exit;
     }    
 }

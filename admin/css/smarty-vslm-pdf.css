@@ -1,0 +1,63 @@
+/* PDF Styling */
+
+body { 
+    font-family: Arial, sans-serif; 
+    font-size: 14px; 
+    line-height: 1.6; 
+}
+                
+.header { 
+    text-align: center; 
+    margin-bottom: 20px; 
+}
+                
+.table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin: 20px 0; 
+}
+                
+.table th, .table td { 
+    border: 1px solid #ddd; 
+    padding: 8px; 
+    text-align: left; 
+}
+                
+.table th { 
+    background-color: #f4f4f4; 
+}
+                
+.pdf-text, .pdf-copyright { 
+    text-align: center; 
+    margin-top: 20px; 
+    font-size: 14px; 
+}
+                
+.contact-info { 
+    margin-top: 20px; 
+    text-align: center; 
+    font-size: 14px; 
+}
+          
+.contact-info hr { 
+    margin: 10px 0; 
+}
+
+.contact-table { 
+    width: 100%; 
+    margin-top: 10px; 
+}
+    
+.contact-table td { 
+    font-size: 14px; 
+    vertical-align: top; 
+    padding: 5px 0; 
+}
+
+.contact-table .left { 
+    text-align: left; 
+}
+
+.contact-table .right { 
+    text-align: right; 
+}
