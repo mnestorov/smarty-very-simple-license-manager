@@ -13,7 +13,7 @@
  * @package                 Smarty_Very_Simple_License_Manager
  *
  * @wordpress-plugin
- * Plugin Name:             SM - Very SImple License Manager
+ * Plugin Name:             SM - Very Simple License Manager
  * Plugin URI:              https://github.com/mnestorov/smarty-very-simple-license-manager
  * Description:             A plugin to manage licenses with custom post types, status management, and API keys.
  * Version:                 1.0.2
