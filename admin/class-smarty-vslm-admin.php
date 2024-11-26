@@ -473,10 +473,9 @@ class Smarty_Vslm_Admin {
 										<td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
 									</tr>
                                     <tr>
-                                        <td><label><?php esc_html_e('Generate PDF', 'smarty-very-simple-license-manager'); ?></label></td>
-                                        <td>
+                                        <td colspan="2" style="text-align: center;">
                                             <a href="<?php echo admin_url('admin-post.php?action=generate_license_pdf&license_id=' . $post->ID); ?>" class="button button-primary">
-                                                <?php esc_html_e('Download PDF', 'smarty-very-simple-license-manager'); ?>
+                                                <?php esc_html_e('Generate PDF', 'smarty-very-simple-license-manager'); ?>
                                             </a>
                                         </td>
                                     </tr>
