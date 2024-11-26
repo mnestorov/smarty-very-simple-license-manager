@@ -13,10 +13,6 @@
  * @subpackage Smarty_Very_Simple_License_Manager/admin
  * @author     Smarty Studio | Martin Nestorov
  */
-
-use Dompdf\Dompdf;
-use Dompdf\Options;
-
 class Smarty_Vslm_Admin {
 
 	/**
@@ -37,6 +33,14 @@ class Smarty_Vslm_Admin {
 	 */
 	private $version;
 
+    /**
+	 * Instance of Smarty_Vslm_Pdf_Generator_Logging.
+	 * 
+	 * @since    1.0.1
+	 * @access   private
+	 */
+	private $pdf_generator;
+
 	/**
 	 * Instance of Smarty_Vslm_Activity_Logging.
 	 * 
@@ -55,6 +59,9 @@ class Smarty_Vslm_Admin {
 	public function __construct($plugin_name, $version) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+
+        // Include and instantiate the PDF Generator class
+        $this->pdf_generator = new Smarty_Vslm_Pdf_Generator();
 
 		// Include and instantiate the Activity Logging class
 		$this->activity_logging = new Smarty_Vslm_Activity_Logging();
@@ -468,9 +475,8 @@ class Smarty_Vslm_Admin {
                                     <tr>
                                         <td><label><?php esc_html_e('Generate PDF', 'smarty-very-simple-license-manager'); ?></label></td>
                                         <td>
-                                            <a href="<?php echo admin_url('admin-post.php?action=generate_license_pdf&license_id=' . $post->ID); ?>" 
-                                            class="button button-primary">
-                                            <?php esc_html_e('Download PDF', 'smarty-very-simple-license-manager'); ?>
+                                            <a href="<?php echo admin_url('admin-post.php?action=generate_license_pdf&license_id=' . $post->ID); ?>" class="button button-primary">
+                                                <?php esc_html_e('Download PDF', 'smarty-very-simple-license-manager'); ?>
                                             </a>
                                         </td>
                                     </tr>
@@ -639,6 +645,10 @@ class Smarty_Vslm_Admin {
                 return $post_id;
             }
 
+            // Debug saved meta data
+            _vslm_write_logs("Saving meta for License ID: {$post_id}");
+            _vslm_write_logs("POST data: " . print_r($_POST, true));
+
             // Save multi-domain setting
             $multi_domain = isset($_POST['multi_domain']) ? '1' : '0';
             update_post_meta($post_id, '_multi_domain', $multi_domain);
@@ -665,7 +675,7 @@ class Smarty_Vslm_Admin {
             }
             update_post_meta($post_id, '_license_key', $license_key);
 
-            $this->activity_loggingvslm_add_activity_log('License key updated for License #' . $post_id . ': ' . $license_key);
+            $this->activity_logging->vslm_add_activity_log('License key updated for License #' . $post_id . ': ' . $license_key);
 
             // Update other fields
             update_post_meta($post_id, '_client_name', sanitize_text_field($_POST['client_name']));
@@ -673,6 +683,8 @@ class Smarty_Vslm_Admin {
             update_post_meta($post_id, '_purchase_date', sanitize_text_field($_POST['purchase_date']));
             update_post_meta($post_id, '_expiration_date', sanitize_text_field($_POST['expiration_date']));
             update_post_meta($post_id, '_status', sanitize_text_field($_POST['status']));
+
+            _vslm_write_logs("Saved meta data: " . print_r(get_post_meta($post_id), true));
 
             if (isset($_POST['product'])) {
                 wp_set_post_terms($post_id, array(intval($_POST['product'])), 'product');
@@ -975,6 +987,7 @@ class Smarty_Vslm_Admin {
 	private function vslm_get_settings_tabs() {
 		$tabs = array(
 			'general' 		   => __('General', 'smarty-very-simple-license-manager'),
+            'pdf-settings'     => __('PDF Settings', 'smarty-very-simple-license-manager'),
 			'activity-logging' => __('Activity & Logging', 'smarty-very-simple-license-manager'),
 		);
 		
@@ -1338,59 +1351,5 @@ class Smarty_Vslm_Admin {
                 $this->activity_logging->vslm_add_activity_log('License #' . $license->ID . ' marked as expired.');
             }
         }
-    }
-
-    public function generate_license_pdf() {
-        if (!current_user_can('manage_options') || !isset($_GET['license_id'])) {
-            wp_die(__('Unauthorized access', 'smarty-very-simple-license-manager'));
-        }
-    
-        $license_id = intval($_GET['license_id']);
-    
-        // Fetch license details
-        $product_terms = get_the_terms($license_id, 'product');
-        $product_name = !empty($product_terms) && !is_wp_error($product_terms) ? $product_terms[0]->name : 'N/A';
-        $license_key = get_post_meta($license_id, '_license_key', true);
-        $multi_domain = get_post_meta($license_id, '_multi_domain', true) === '1' ? 'Yes' : 'No';
-        $client_name = get_post_meta($license_id, '_client_name', true);
-        $client_email = get_post_meta($license_id, '_client_email', true);
-        $purchase_date = get_post_meta($license_id, '_purchase_date', true);
-        $expiration_date = get_post_meta($license_id, '_expiration_date', true);
-        $site_name = get_bloginfo('name');
-    
-        // Prepare HTML for PDF
-        $html = '
-            <style>
-                body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                .table th { background-color: #f4f4f4; }
-            </style>
-            <div class="header">
-                <h2>' . esc_html($site_name) . '</h2>
-                <h4>' . __('License Details', 'smarty-very-simple-license-manager') . '</h4>
-            </div>
-            <table class="table">
-                <tr><th>' . __('Product Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($product_name) . '</td></tr>
-                <tr><th>' . __('License Key', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($license_key) . '</td></tr>
-                <tr><th>' . __('Multi-Domain Usage', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($multi_domain) . '</td></tr>
-                <tr><th>' . __('Client Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_name) . '</td></tr>
-                <tr><th>' . __('Client Email', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_email) . '</td></tr>
-                <tr><th>' . __('Purchase Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($purchase_date) . '</td></tr>
-                <tr><th>' . __('Expiration Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($expiration_date) . '</td></tr>
-            </table>';
-    
-        // Initialize Dompdf
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-    
-        // Output the PDF
-        $dompdf->stream('license-details-' . $license_id . '.pdf', array('Attachment' => true));
-        exit;
     }
 }

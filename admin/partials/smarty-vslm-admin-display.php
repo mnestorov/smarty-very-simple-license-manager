@@ -32,6 +32,9 @@
                 <h3 class="warning"><span class="dashicons dashicons-warning"></span>&nbsp;<?php esc_html(_e('WARNING', 'smarty-very-simple-license-manager')); ?></h3>
                 <p><?php esc_html(_e('The Consumer Key and Consumer Secret keys are used to authenticate API requests for the License Manager.</p><p>These keys should be generated once and not changed thereafter.</p><p>Altering them could disrupt existing API integrations that rely on these keys for secure access.', 'smarty-very-simple-license-manager')); ?></p>
             </div>
+		<?php elseif ($current_tab == 'pdf-settings') : ?>	
+			<?php settings_fields('smarty_vslm_options_pdf_generator'); ?>
+			<?php do_settings_sections('smarty_vslm_options_pdf_generator'); ?>
 		<?php elseif ($current_tab == 'activity-logging') : ?>
 			<?php settings_fields('smarty_vslm_options_activity_logging'); ?>
 			<?php do_settings_sections('smarty_vslm_options_activity_logging'); ?>

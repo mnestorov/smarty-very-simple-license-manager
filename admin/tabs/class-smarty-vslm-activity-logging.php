@@ -24,7 +24,7 @@ class Smarty_Vslm_Activity_Logging {
         add_settings_section(
 			'smarty_vslm_section_activity_logging',								// ID of the section
 			__('Activity & Logging', 'smarty-very-simple-license-manager'),    	// Title of the section  		
-			array($this, 'vslm_section_tab_activity_logging_cb'),                // Callback function that fills the section with the desired content	
+			array($this, 'vslm_section_tab_activity_logging_cb'),               // Callback function that fills the section with the desired content	
 			'smarty_vslm_options_activity_logging'                   			// Page on which to add the section   		
 		);
 
@@ -32,7 +32,7 @@ class Smarty_Vslm_Activity_Logging {
             'smarty_vslm_system_info', 											// ID of the field
             __('System Info', 'smarty-very-simple-license-manager'), 			// Title of the field
             array($this, 'vslm_system_info_cb'), 								// Callback function to display the field
-            'smarty_vslm_options_activity_logging', 								// Page on which to add the field
+            'smarty_vslm_options_activity_logging', 							// Page on which to add the field
             'smarty_vslm_section_activity_logging' 								// Section to which this field belongs
         );
 

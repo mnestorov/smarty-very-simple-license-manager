@@ -59,7 +59,7 @@ class Smarty_Vslm_Locator {
 		if (defined('VSLM_VERSION')) {
 			$this->version = VSLM_VERSION;
 		} else {
-			$this->version = '1.0.1';
+			$this->version = '1.0.2';
 		}
 
 		$this->plugin_name = 'smarty-very-simple-license-manager';
@@ -103,6 +103,11 @@ class Smarty_Vslm_Locator {
 		require_once plugin_dir_path(dirname(__FILE__)) . '../admin/class-smarty-vslm-admin.php';
 
 		/**
+		 * The class responsible for PDF generating functionality in the admin area.
+		 */
+		require_once plugin_dir_path(dirname(__FILE__)) . '../admin/tabs/class-smarty-vslm-pdf-generator.php';
+
+		/**
 		 * The class responsible for Activity & Logging functionality in the admin area.
 		 */
 		require_once plugin_dir_path(dirname(__FILE__)) . '../admin/tabs/class-smarty-vslm-activity-logging.php';
@@ -141,6 +146,7 @@ class Smarty_Vslm_Locator {
 	private function define_admin_hooks() {
 		$plugin_admin = new Smarty_Vslm_Admin($this->get_plugin_name(), $this->get_version());
 
+		$plugin_pdf_generator = new Smarty_Vslm_Pdf_Generator();
 		$plugin_activity_logging = new Smarty_Vslm_Activity_Logging();
 
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
@@ -170,7 +176,10 @@ class Smarty_Vslm_Locator {
 		$this->loader->add_action('rest_api_init', $plugin_admin, 'vslm_register_license_status_endpoint');
 		$this->loader->add_action('wp', $plugin_admin, 'vslm_schedule_cron_job');
 		$this->loader->add_action('smarty_vslm_license_check', $plugin_admin, 'vslm_check_expired_licenses');
-		$this->loader->add_action('admin_post_generate_license_pdf', $plugin_admin, 'generate_license_pdf');
+
+		// Register hooks for PDF Settings
+		$this->loader->add_action('admin_init', $plugin_pdf_generator, 'vslm_pdf_settings_init');
+		$this->loader->add_action('admin_post_generate_license_pdf', $plugin_pdf_generator, 'vslm_generate_license_pdf');
 
 		// Register hooks for Activity & Logging
 		$this->loader->add_action('admin_init', $plugin_activity_logging, 'vslm_al_settings_init');
