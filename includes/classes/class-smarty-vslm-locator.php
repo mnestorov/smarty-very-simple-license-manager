@@ -170,6 +170,7 @@ class Smarty_Vslm_Locator {
 		$this->loader->add_action('rest_api_init', $plugin_admin, 'vslm_register_license_status_endpoint');
 		$this->loader->add_action('wp', $plugin_admin, 'vslm_schedule_cron_job');
 		$this->loader->add_action('smarty_vslm_license_check', $plugin_admin, 'vslm_check_expired_licenses');
+		$this->loader->add_action('admin_post_generate_license_pdf', $plugin_admin, 'generate_license_pdf');
 
 		// Register hooks for Activity & Logging
 		$this->loader->add_action('admin_init', $plugin_activity_logging, 'vslm_al_settings_init');
