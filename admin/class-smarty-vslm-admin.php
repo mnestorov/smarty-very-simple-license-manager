@@ -652,7 +652,7 @@ class Smarty_Vslm_Admin {
             }
             update_post_meta($post_id, '_license_key', $license_key);
 
-            Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License key updated for License #$post_id: $license_key.");
+            $this->activity_loggingvslm_add_activity_log('License key updated for License #' . $post_id . ': ' . $license_key);
 
             // Update other fields
             update_post_meta($post_id, '_client_name', sanitize_text_field($_POST['client_name']));
@@ -1071,9 +1071,7 @@ class Smarty_Vslm_Admin {
     public function vslm_generate_ck_key() {
         $ck_key = 'ck_' . bin2hex(random_bytes(20)); // Generate a CK key
         update_option('smarty_vslm_ck_key', $ck_key);
-
-        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("New CK key generated: $ck_key.");
-
+        $this->activity_logging->vslm_add_activity_log('New CK key generated: ' . $ck_key);
         wp_send_json_success($ck_key);
     }
     
@@ -1085,9 +1083,7 @@ class Smarty_Vslm_Admin {
     public function vslm_generate_cs_key() {
         $cs_key = 'cs_' . bin2hex(random_bytes(20)); // Generate a CS key
         update_option('smarty_vslm_cs_key', $cs_key);
-
-        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("New CS key generated: $cs_key.");
-
+        $this->activity_logging->vslm_add_activity_log('New CS key generated: ' . $cs_key);
         wp_send_json_success($cs_key);
     }
     
@@ -1173,8 +1169,7 @@ class Smarty_Vslm_Admin {
 		}
 
         $license_id = $license_posts[0]->ID;
-        Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License #$license_id successfully activated on site: $site_url.");
-
+        $this->activity_logging->vslm_add_activity_log('License #' . $license_id . ' successfully activated on site: ' . $site_url);
         $multi_domain = get_post_meta($license_id, '_multi_domain', true);
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
@@ -1327,7 +1322,7 @@ class Smarty_Vslm_Admin {
             $expiration_date = get_post_meta($license->ID, '_expiration_date', true);
             if (strtotime($expiration_date) < time()) {
                 update_post_meta($license->ID, '_status', 'expired');
-                Smarty_Vslm_Activity_Logging::vslm_add_activity_log("License #{$license->ID} marked as expired.");
+                $this->activity_logging->vslm_add_activity_log('License #' . $license->ID . ' marked as expired.');
             }
         }
     }
