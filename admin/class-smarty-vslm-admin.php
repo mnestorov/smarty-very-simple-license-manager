@@ -241,7 +241,7 @@ class Smarty_Vslm_Admin {
     public function vslm_add_license_meta_boxes() {
         add_meta_box(
             'license_details',
-            array($this, 'vslm_license_meta_box_title'), // Set title with dynamic status dot
+            $this->vslm_license_meta_box_title(),     // Set title with dynamic status dot
             array($this, 'vslm_license_details_cb'),
             'vslm-licenses',
             'normal',
