@@ -12,8 +12,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 404) {
-                        return { status: 'rest_no_route', message: 'REST route not found.' };
+                        return { 
+                            status: 'rest_no_route', 
+                            message: 'REST route not found.' 
+                        };
                     }
+                    console.error(`Error: HTTP ${response.status}`, response);
                     throw new Error(`HTTP Error: ${response.status}`);
                 }
                 return response.json();

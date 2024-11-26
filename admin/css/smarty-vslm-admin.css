@@ -1,3 +1,12 @@
+/**
+ * All of the CSS for plugin admin functionality should be included in this file.
+ */
+
+ .form-table { 
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 30px;
+}
+
 .smarty-vslm-status-circle {
     width: 15px; 
     height: 15px;
@@ -6,6 +15,7 @@
 }
 
 /* Checkbox Styling */
+
 .smarty-vslm-checkbox {
     display: inline-block;
     position: relative;
@@ -61,6 +71,7 @@
 }
 
 /* Two-column Layout */
+
 .smarty-vslm-two-col {
     display: flex;
     gap: 10px;
@@ -76,6 +87,7 @@
 }
 
 /* Table styling */
+
 .smarty-vslm-license-table {
     width: 100%;
     max-width: 100%;
@@ -119,6 +131,7 @@
 }
 
 /* Inner (nested) table styling */
+
 .smarty-vslm-nested-table {
     border-collapse: collapse;
     width: 100%;
@@ -183,6 +196,7 @@
 }
 
 /* License Status Styling */
+
 .smarty-vslm-status-badge.active {
     background-color: #d9f2d9; /* Light green background */
     color: #28a745; /* Darker green text */
@@ -208,6 +222,7 @@
 }
 
 /* Outer container to position the circles */
+
 .smarty-vslm-status-circle-container {
     position: relative;
     display: inline-block;
@@ -217,6 +232,7 @@
 }
 
 /* Main status circle */
+
 .smarty-vslm-status-circle {
     position: relative;
     width: 12px;
@@ -226,6 +242,7 @@
 }
 
 /* Active status with pulsing effect */
+
 .smarty-vslm-status-circle-container--active .smarty-vslm-status-circle {
     background-color: #28a745; /* Active color */
 }
@@ -243,6 +260,7 @@
 }
 
 /* Inactive status with pulsing effect */
+
 .smarty-vslm-status-circle-container--inactive .smarty-vslm-status-circle {
     background-color: #dc3545; /* Inactive color */
 }
@@ -261,6 +279,7 @@
 }
 
 /* Expired status with pulsing effect */
+
 .smarty-vslm-status-circle-container--expired .smarty-vslm-status-circle {
     background-color: #427eab; /* Expired color */
 }
@@ -279,6 +298,7 @@
 }
 
 /* Keyframes for pulsing effects */
+
 @keyframes pulse-active {
     0% {
         transform: scale(1);
@@ -325,6 +345,7 @@
 }
 
 /* Styling for the Copy link */
+
 .smarty-vslm-copy-key-link {
     margin-left: 5px;
     cursor: pointer;
@@ -335,7 +356,94 @@
     color: #005177;
 }
 
+/* Styling for the waarning message in settings "General" tab */
+
+.smarty-vslm-warning-msg {
+    color: #726a51;
+    background-color: #fff3cd; 
+    border: 1px solid #e5d4a2; 
+    border-left: 4px solid #e5d4a2; 
+    border-radius: 3px; 
+    padding: 10px; 
+    margin-top: 20px;
+}
+
+/* The switch - the box around the slider */
+
+.smarty-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+
+.smarty-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+
+.smarty-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.smarty-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .smarty-slider {
+    background-color: #2196F3;
+}
+
+input:checked + .smarty-slider:before {
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+
+.smarty-slider.round {
+    border-radius: 34px;
+}
+
+.smarty-slider.round:before {
+    border-radius: 50%;
+}
+
 /* Helpers */
+
+.smarty-error {
+    background: #fff0f4 !important;
+    color: #c51244 !important;
+}
+
+.smarty-text-success {
+    color: #28a745;
+}
+
+.smarty-text-danger {
+    color: #c51244;
+}
+
 .active {
     color: #28a745;
     font-weight: bold;
@@ -346,8 +454,67 @@
     font-weight: bold;
 }
 
-.smarty-json-response,
-.smarty-json-container pre {
+.warning {
+    color: #726a51;
+    font-weight: bold;
+}
+
+ /* Buttons */
+
+ .btn {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: .85rem;
+    line-height: 1.5;
+    border-radius: .25rem;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    cursor: pointer;
+}
+
+.btn-success {
+    display: inline-block;
+    margin: 20px 5px;
+    background: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.btn-success:hover {
+    color: #fff;
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    color: #fff;
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.btn.disabled, .btn:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+/* JSON container */
+
+.smarty-vslm-json-response,
+.smarty-vslm-json-container pre {
 	background: #333333;
 	max-height: 150px;
 	border-radius: 5px;
@@ -355,15 +522,15 @@
 	overflow: auto;
 }
 
-.smarty-json-container pre {
+.smarty-vslm-json-container pre {
     color: #d9f2d9;
     font-family: 'Courier New', Courier, monospace;
 }
 
-.smarty-json-container .success {
+.smarty-vslm-json-container .success {
 	color: #d9f2d9;
 }
 
-.smarty-json-container .error {
+.smarty-vslm-json-container .error {
     color: #f8d7da;
 }
