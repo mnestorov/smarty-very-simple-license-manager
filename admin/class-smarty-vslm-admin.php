@@ -375,26 +375,27 @@ class Smarty_Vslm_Admin {
         // Retrieve existing values from the post meta, if available
         $product_terms = get_the_terms($post->ID, 'product'); // Get assigned product terms
         $license_key = get_post_meta($post->ID, '_license_key', true);
-        $client_name = get_post_meta($post->ID, '_client_name', true);
-        $client_email = get_post_meta($post->ID, '_client_email', true);
+        $status = get_post_meta($post->ID, '_status', true);
+        $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
         $purchase_date = get_post_meta($post->ID, '_purchase_date', true);
         $expiration_date = get_post_meta($post->ID, '_expiration_date', true);
-        $status = get_post_meta($post->ID, '_status', true);
+        
+        // Client information
+        $client_name = get_post_meta($post->ID, '_client_name', true);
+        $client_email = get_post_meta($post->ID, '_client_email', true);
+        $company_name = get_post_meta($post->ID, '_company_name', true);
+        $company_address = get_post_meta($post->ID, '_company_address', true);
+        $vat = get_post_meta($post->ID, '_vat', true);
+        
+        // Retrieve plugin information
         $usage_url = get_post_meta($post->ID, '_usage_url', true); // Retrieve the usage URL
         $usage_urls = get_post_meta($post->ID, '_usage_urls', true) ?: array();
-        $multi_domain = get_post_meta($post->ID, '_multi_domain', true);
-        $wp_version = get_post_meta($post->ID, '_wp_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
-		
-        // Retrieve plugin information
         $plugin_name = get_post_meta($post->ID, '_plugin_name', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $plugin_version = get_post_meta($post->ID, '_plugin_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
-
-        // Retrieve additional server information
+        $wp_version = get_post_meta($post->ID, '_wp_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $web_server = get_post_meta($post->ID, '_web_server', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $server_ip = get_post_meta($post->ID, '_server_ip', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $php_version = get_post_meta($post->ID, '_php_version', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
-
-        // Retrieve additional user info
         $user_ip = get_post_meta($post->ID, '_user_ip', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $browser = get_post_meta($post->ID, '_browser', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
         $device_type = get_post_meta($post->ID, '_device_type', true) ?: esc_html(__('Not recorded yet', 'smarty-very-simple-license-manager'));
@@ -456,6 +457,14 @@ class Smarty_Vslm_Admin {
 											?>
 										</td>
 									</tr>
+                                    <tr>
+										<td><label><?php esc_html(_e('Purchase Date', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="date" name="purchase_date" value="<?php echo esc_attr($purchase_date); ?>"/></td>
+									</tr>
+									<tr>
+										<td><label><?php esc_html(_e('Expiration Date', 'smarty-very-simple-license-manager')); ?></label></td>
+										<td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
+									</tr>
 									<tr>
 										<td><label><?php esc_html(_e('Client Name', 'smarty-very-simple-license-manager')); ?></label></td>
 										<td><input type="text" name="client_name" value="<?php echo esc_attr($client_name); ?>" required/></td>
@@ -464,14 +473,18 @@ class Smarty_Vslm_Admin {
 										<td><label><?php esc_html(_e('Client Email', 'smarty-very-simple-license-manager')); ?></label></td>
 										<td><input type="email" name="client_email" value="<?php echo esc_attr($client_email); ?>"/></td>
 									</tr>
-									<tr>
-										<td><label><?php esc_html(_e('Purchase Date', 'smarty-very-simple-license-manager')); ?></label></td>
-										<td><input type="date" name="purchase_date" value="<?php echo esc_attr($purchase_date); ?>"/></td>
-									</tr>
-									<tr>
-										<td><label><?php esc_html(_e('Expiration Date', 'smarty-very-simple-license-manager')); ?></label></td>
-										<td><input type="date" name="expiration_date" value="<?php echo esc_attr($expiration_date); ?>"/></td>
-									</tr>
+                                    <tr>
+                                        <td><label><?php esc_html_e('Company Name', 'smarty-very-simple-license-manager'); ?></label></td>
+                                        <td><input type="text" name="company_name" value="<?php echo esc_attr($company_name); ?>" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><?php esc_html_e('Company Address', 'smarty-very-simple-license-manager'); ?></label></td>
+                                        <td><textarea name="company_address" rows="3"><?php echo esc_textarea($company_address); ?></textarea></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><?php esc_html_e('VAT Number', 'smarty-very-simple-license-manager'); ?></label></td>
+                                        <td><input type="text" name="vat" value="<?php echo esc_attr($vat); ?>" /></td>
+                                    </tr>
                                     <tr>
                                         <td colspan="2" style="text-align: center;">
                                             <a href="<?php echo admin_url('admin-post.php?action=generate_license_pdf&license_id=' . $post->ID); ?>" class="button button-primary">
@@ -645,8 +658,8 @@ class Smarty_Vslm_Admin {
             }
 
             // Debug saved meta data
-            _vslm_write_logs("Saving meta for License ID: {$post_id}");
-            _vslm_write_logs("POST data: " . print_r($_POST, true));
+            //_vslm_write_logs("Saving meta for License ID: {$post_id}");
+            //_vslm_write_logs("POST data: " . print_r($_POST, true));
 
             // Save multi-domain setting
             $multi_domain = isset($_POST['multi_domain']) ? '1' : '0';
@@ -679,11 +692,14 @@ class Smarty_Vslm_Admin {
             // Update other fields
             update_post_meta($post_id, '_client_name', sanitize_text_field($_POST['client_name']));
             update_post_meta($post_id, '_client_email', sanitize_email($_POST['client_email']));
+            update_post_meta($post_id, '_company_name', sanitize_text_field($_POST['company_name']));
+            update_post_meta($post_id, '_company_address', sanitize_textarea_field($_POST['company_address']));
+            update_post_meta($post_id, '_vat', sanitize_text_field($_POST['vat']));
             update_post_meta($post_id, '_purchase_date', sanitize_text_field($_POST['purchase_date']));
             update_post_meta($post_id, '_expiration_date', sanitize_text_field($_POST['expiration_date']));
             update_post_meta($post_id, '_status', sanitize_text_field($_POST['status']));
 
-            _vslm_write_logs("Saved meta data: " . print_r(get_post_meta($post_id), true));
+            //_vslm_write_logs("Saved meta data: " . print_r(get_post_meta($post_id), true));
 
             if (isset($_POST['product'])) {
                 wp_set_post_terms($post_id, array(intval($_POST['product'])), 'product');
@@ -1194,7 +1210,6 @@ class Smarty_Vslm_Admin {
 		}
 
         $license_id = $license_posts[0]->ID;
-        $this->activity_logging->vslm_add_activity_log('License #' . $license_id . ' successfully activated on site: ' . $site_url);
         $multi_domain = get_post_meta($license_id, '_multi_domain', true);
 
         if (!empty($site_url) && filter_var($site_url, FILTER_VALIDATE_URL)) {
@@ -1219,25 +1234,33 @@ class Smarty_Vslm_Admin {
 				];
 
 				if ($existing_key !== false) {
-                    // Update existing entry
-                    $usage_urls[$existing_key] = $url_data;
+                    // Compare old and new data
+                    if ($existing_usage_urls[$existing_key] !== $url_data) {
+                        // Update only if there's a difference
+                        $existing_usage_urls[$existing_key] = $url_data;
+                        update_post_meta($license_id, '_usage_urls', $existing_usage_urls);
+        
+                        // Log the change
+                        $this->activity_logging->vslm_add_activity_log('License #' . $license_id . ' updated on site: ' . $site_url);
+                    }
                 } else {
-                    // Add new entry
-                    $usage_urls[] = $url_data;
-                }
+                    // Add new entry if it doesn't exist
+                    $existing_usage_urls[] = $url_data;
+                    update_post_meta($license_id, '_usage_urls', $existing_usage_urls);
 
+                    // Log the addition
+                    $this->activity_logging->vslm_add_activity_log('License #' . $license_id . ' activated on new site: ' . $site_url);
+                }
 				update_post_meta($license_id, '_usage_urls', $usage_urls);
 			} else {
                 // Single-domain usage
                 $existing_usage_url = get_post_meta($license_id, '_usage_url', true);
-                
-				if (empty($existing_usage_url) || $existing_usage_url === $site_url) {
+
+                if ($existing_usage_url !== $site_url) {
                     update_post_meta($license_id, '_usage_url', esc_url_raw($site_url));
-                } else {
-                    return new WP_REST_Response([
-                        'status'  => 'error',
-                        'message' => 'License already activated on another domain.',
-                    ], 403);
+
+                    // Log only if the URL is different
+                    $this->activity_logging->vslm_add_activity_log('License #' . $license_id . ' activated on site: ' . $site_url);
                 }
             }
         }

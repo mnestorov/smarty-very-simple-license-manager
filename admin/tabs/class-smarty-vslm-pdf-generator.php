@@ -171,6 +171,11 @@ class Smarty_Vslm_Pdf_Generator {
             wp_die(__('Invalid License ID.', 'smarty-very-simple-license-manager'));
         }
 
+        // Log the PDF generation activity using a new instance of Smarty_Vslm_Activity_Logging
+        if (class_exists('Smarty_Vslm_Activity_Logging')) {
+            $activity_logger = new Smarty_Vslm_Activity_Logging();
+            $activity_logger->vslm_add_activity_log('PDF generated for License #' . $license_id);
+        }
         // Proceed with actual PDF generation
         self::vslm_license_pdf($license_id);
     }
@@ -205,6 +210,9 @@ class Smarty_Vslm_Pdf_Generator {
         $multi_domain = get_post_meta($license_id, '_multi_domain', true) === '1' ? 'Yes' : 'No';
         $client_name = get_post_meta($license_id, '_client_name', true);
         $client_email = get_post_meta($license_id, '_client_email', true);
+        $company_name = get_post_meta($license_id, '_company_name', true);
+        $company_address = get_post_meta($license_id, '_company_address', true);
+        $vat = get_post_meta($license_id, '_vat', true);
         $purchase_date = get_post_meta($license_id, '_purchase_date', true);
         $expiration_date = get_post_meta($license_id, '_expiration_date', true);
     
@@ -221,7 +229,6 @@ class Smarty_Vslm_Pdf_Generator {
         //_vslm_write_logs(print_r($debug_log, true));
     
         // Get custom PDF title from settings
-        $site_name = get_bloginfo('name');
         $pdf_title = get_option('smarty_vslm_pdf_title', 'License Details');
         $pdf_text = get_option('smarty_vslm_pdf_text', '');
         $copyright_text = get_option('smarty_vslm_pdf_copyright', '');
@@ -237,18 +244,36 @@ class Smarty_Vslm_Pdf_Generator {
             <style>' . $css . '</style>
             <div class="header">
                 <div> #10000' . esc_html($license_id) . '</div>
-                <h2>' . esc_html($site_name) . '</h2>
-                <h4>' . esc_html($pdf_title) . '</h4>
+                <h2>' . esc_html($pdf_title) . '</h2>
             </div>
-            <table class="table">
-                <tr><th>' . __('Product Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($product_name) . '</td></tr>
-                <tr><th>' . __('License Key', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($license_key) . '</td></tr>
-                <tr><th>' . __('Multi-Domain Usage', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($multi_domain) . '</td></tr>
-                <tr><th>' . __('Client Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_name) . '</td></tr>
-                <tr><th>' . __('Client Email', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_email) . '</td></tr>
-                <tr><th>' . __('Purchase Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($purchase_date) . '</td></tr>
-                <tr><th>' . __('Expiration Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($expiration_date) . '</td></tr>
-            </table>
+            <div class="license-info">
+                <table class="table">
+                    <thead>
+                        <tr><th colspan="2">' .  __('License Details', 'smarty-very-simple-license-manager') . '</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th>' . __('Product Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($product_name) . '</td></tr>
+                        <tr><th>' . __('License Key', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($license_key) . '</td></tr>
+                        <tr><th>' . __('Multi-Domain Usage', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($multi_domain) . '</td></tr>
+                        <tr><th>' . __('Purchase Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($purchase_date) . '</td></tr>
+                        <tr><th>' . __('Expiration Date', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($expiration_date) . '</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="client-info">
+                <table class="table">
+                    <thead>
+                        <tr><th colspan="2">' .  __('Client Details', 'smarty-very-simple-license-manager') . '</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th>' . __('Client Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_name) . '</td></tr>
+                        <tr><th>' . __('Client Email', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($client_email) . '</td></tr>
+                        <tr><th>' . __('Company Name', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($company_name) . '</td></tr>
+                        <tr><th>' . __('Company Address', 'smarty-very-simple-license-manager') . '</th><td>' . nl2br(esc_html($company_address)) . '</td></tr>
+                        <tr><th>' . __('VAT Number', 'smarty-very-simple-license-manager') . '</th><td>' . esc_html($vat) . '</td></tr>
+                    </tbody>
+                </table>
+            </div>
             <div class="pdf-text">
                 <p>' . nl2br(esc_html($pdf_text)) . '</p>
             </div>

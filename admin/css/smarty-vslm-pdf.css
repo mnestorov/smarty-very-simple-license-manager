@@ -16,6 +16,10 @@ body {
     border-collapse: collapse; 
     margin: 20px 0; 
 }
+
+.table thead th { 
+    text-align: center;
+}
                 
 .table th, .table td { 
     border: 1px solid #ddd; 
@@ -27,14 +31,20 @@ body {
     background-color: #f4f4f4; 
 }
                 
-.pdf-text, .pdf-copyright { 
+.pdf-text, 
+.pdf-copyright { 
     text-align: center; 
     margin-top: 20px; 
     font-size: 14px; 
 }
+
+.license-info, 
+.client-info, 
+.contact-info { 
+    margin-top: 20px;
+}
                 
 .contact-info { 
-    margin-top: 20px; 
     text-align: center; 
     font-size: 14px; 
 }
