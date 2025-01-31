@@ -11,7 +11,7 @@
  * @since      1.0.1
  *
  * @package    Smarty_Very_Simple_License_Manager
- * @subpackage Smarty_Very_Simple_License_Manager/public
+ * @subpackage Smarty_Very_Simple_License_Manager/includes
  * @author     Smarty Studio | Martin Nestorov
  */
 
